@@ -12,7 +12,7 @@
 
 uint8_t ep0_buf_in[USB_EP0SIZE] __attribute__((aligned(4)));
 uint8_t ep0_buf_out[USB_EP0SIZE]  __attribute__((aligned(4)));
-USB_EP_t endpoints[USB_MAXEP*2] __attribute__((aligned(4)));
+USB_EP_pair_t endpoints[USB_MAXEP] __attribute__((aligned(4)));
 
 
 volatile uint8_t USB_DeviceState;
@@ -41,12 +41,12 @@ void USB_ResetInterface(){
 	USB.EPPTR = (unsigned) &endpoints;
 	USB.ADDR = 0;
 	
-	endpoints[0].STATUS = 0;
-	endpoints[0].CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0SIZE);
-	endpoints[0].DATAPTR = (unsigned) &ep0_buf_out;
-	endpoints[1].STATUS = USB_EP_BUSNACK0_bm;
-	endpoints[1].CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0SIZE);
-	endpoints[1].DATAPTR = (unsigned) &ep0_buf_in;
+	endpoints[0].out.STATUS = 0;
+	endpoints[0].out.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0SIZE);
+	endpoints[0].out.DATAPTR = (unsigned) &ep0_buf_out;
+	endpoints[0].in.STATUS = USB_EP_BUSNACK0_bm;
+	endpoints[0].in.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0SIZE);
+	endpoints[0].in.DATAPTR = (unsigned) &ep0_buf_in;
 	
 	USB.CTRLA = USB_ENABLE_bm | USB_SPEED_bm | 1;
 	
@@ -55,8 +55,8 @@ void USB_ResetInterface(){
 
 
 void USB_ep_send_packet(uint8_t endpoint, uint16_t size){
-	endpoints[1].CNT = size;
-	endpoints[1].STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm); // clear flags
+	endpoints[endpoint].in.CNT = size;
+	endpoints[endpoint].in.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm); // clear flags
 }
 
 void USB_sendFromFlash(uint8_t endpoint, const uint8_t* addr, uint16_t size){
@@ -75,14 +75,14 @@ void USB_Task(){
 		USB_Init();
 	}
 
-	if (endpoints[0].STATUS & USB_EP_SETUP_bm){
+	if (endpoints[0].out.STATUS & USB_EP_SETUP_bm){
 		if (!USB_HandleSetup()){
-			endpoints[0].CTRL |= USB_EP_STALL_bm; 
+			endpoints[0].out.CTRL |= USB_EP_STALL_bm; 
 		}
-		endpoints[0].STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm);
-	}else if(endpoints[0].STATUS & USB_EP_TRNCOMPL0_bm){
+		endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm);
+	}else if(endpoints[0].out.STATUS & USB_EP_TRNCOMPL0_bm){
 		// We currently don't care about OUT data stages, so just clear it
-		endpoints[0].STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm);
+		endpoints[0].out.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm);
 	}
 }
 

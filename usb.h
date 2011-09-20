@@ -29,9 +29,14 @@
 	#define EP0SIZE 64
 #endif
 
+typedef struct USB_EP_pair{
+	USB_EP_t out;
+	USB_EP_t in;
+} ATTR_PACKED USB_EP_pair_t;
+
 extern uint8_t ep0_buf_in[USB_EP0SIZE];
 extern uint8_t ep0_buf_out[USB_EP0SIZE];
-extern USB_EP_t endpoints[USB_MAXEP*2];
+extern USB_EP_pair_t endpoints[USB_MAXEP];
 
 /* Enums: */
 	/** Enum for the various states of the USB Device state machine. Only some states are
