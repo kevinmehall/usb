@@ -21,9 +21,17 @@
 #include "StdRequestType.h"
 #include "Events.h"
 
-extern uint8_t ep0_buf_in[64];
-extern uint8_t ep0_buf_out[64];
-extern USB_EP_t endpoints[2];
+#ifndef USB_MAXEP
+	#define USB_MAXEP 1;
+#endif
+
+#ifndef USB_EP0SIZE
+	#define EP0SIZE 64
+#endif
+
+extern uint8_t ep0_buf_in[USB_EP0SIZE];
+extern uint8_t ep0_buf_out[USB_EP0SIZE];
+extern USB_EP_t endpoints[USB_MAXEP*2];
 
 /* Enums: */
 	/** Enum for the various states of the USB Device state machine. Only some states are
@@ -96,14 +104,20 @@ static inline void USB_Detach(void)
 /** Attaches the device to the USB bus. This announces the device's presence to any attached
  *  USB host, starting the enumeration process. If no host is present, attaching the device
  *  will allow for enumeration once a host is connected to the device.
- *
- *  This is inexplicably also required for proper operation while in host mode, to enable the
- *  attachment of a device to the host. This is despite the bit being located in the device-mode
- *  register and despite the datasheet making no mention of its requirement in host mode.
  */
 static inline void USB_Attach(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Attach(void)
 {
 	USB.CTRLB |= USB_ATTACH_bm;
 }
+
+#define USB_EP_size_to_gc(x)  ((x <= 8   )?USB_EP_BUFSIZE_8_gc:\
+                               (x <= 16  )?USB_EP_BUFSIZE_16_gc:\
+                               (x <= 32  )?USB_EP_BUFSIZE_32_gc:\
+                               (x <= 64  )?USB_EP_BUFSIZE_64_gc:\
+                               (x <= 128 )?USB_EP_BUFSIZE_128_gc:\
+                               (x <= 256 )?USB_EP_BUFSIZE_256_gc:\
+                               (x <= 512 )?USB_EP_BUFSIZE_512_gc:\
+                                           USB_EP_BUFSIZE_1023_gc)
+                               
 

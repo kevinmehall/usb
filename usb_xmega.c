@@ -10,9 +10,10 @@
 #include "usb.h"
 
 
-uint8_t ep0_buf_in[64] __attribute__((aligned(4)));
-uint8_t ep0_buf_out[64]  __attribute__((aligned(4)));
-USB_EP_t endpoints[2] __attribute__((aligned(4)));
+uint8_t ep0_buf_in[USB_EP0SIZE] __attribute__((aligned(4)));
+uint8_t ep0_buf_out[USB_EP0SIZE]  __attribute__((aligned(4)));
+USB_EP_t endpoints[USB_MAXEP*2] __attribute__((aligned(4)));
+
 
 volatile uint8_t USB_DeviceState;
 volatile uint8_t USB_Device_ConfigurationNumber;
@@ -41,10 +42,10 @@ void USB_ResetInterface(){
 	USB.ADDR = 0;
 	
 	endpoints[0].STATUS = 0;
-	endpoints[0].CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_BUFSIZE_64_gc;
+	endpoints[0].CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0SIZE);
 	endpoints[0].DATAPTR = (unsigned) &ep0_buf_out;
 	endpoints[1].STATUS = USB_EP_BUSNACK0_bm;
-	endpoints[1].CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_BUFSIZE_64_gc;
+	endpoints[1].CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0SIZE);
 	endpoints[1].DATAPTR = (unsigned) &ep0_buf_in;
 	
 	USB.CTRLA = USB_ENABLE_bm | USB_SPEED_bm | 1;
