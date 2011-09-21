@@ -59,7 +59,7 @@ const USB_Descriptor_Device_t PROGMEM XmegaExample_DeviceDescriptor =
 
 	.ManufacturerStrIndex   = 0x01,
 	.ProductStrIndex        = 0x02,
-	.SerialNumStrIndex      = 0x03,
+	.SerialNumStrIndex      = USE_INTERNAL_SERIAL,
 
 	.NumberOfConfigurations = 1
 };
@@ -136,15 +136,6 @@ const USB_Descriptor_String_t PROGMEM XmegaExample_ProductString =
 	.UnicodeString          = L"xmega32a4u Example Device"
 };
 
-/** Serial number string. This is a Unicode string containing the device's unique serial number, expressed as a
- *  series of uppercase hexadecimal digits.
- */
-const USB_Descriptor_String_t PROGMEM XmegaExample_SerialString =
-{
-	.Header                 = {.Size = USB_STRING_LEN(5), .Type = DTYPE_String},
-
-	.UnicodeString          = L"00001"
-};
 
 /** This function is called by the library when in device mode, and must be overridden (see library "USB Descriptors"
  *  documentation) by the application code so that the address and size of a requested descriptor can be given
@@ -186,10 +177,6 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
 				case 0x02:
 					Address = &XmegaExample_ProductString;
 					Size    = pgm_read_byte(&XmegaExample_ProductString.Header.Size);
-					break;
-				case 0x03:
-					Address = &XmegaExample_SerialString;
-					Size    = pgm_read_byte(&XmegaExample_SerialString.Header.Size);
 					break;
 			}
 
