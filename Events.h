@@ -233,7 +233,7 @@
 			 *        request SETUP parameters into the \ref USB_ControlRequest structure which should then be used
 			 *        by the application to determine how to handle the issued request.
 			 */
-			void EVENT_USB_Device_ControlRequest(void);
+			bool EVENT_USB_Device_ControlRequest(struct USB_Request_Header* req);
 
 			/** Event for USB configuration number changed. This event fires when a the USB host changes the
 			 *  selected configuration number while in device mode. This event should be hooked in device
@@ -338,7 +338,7 @@
 				#if defined(USB_CAN_BE_DEVICE)
 					void EVENT_USB_Device_Connect(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
 					void EVENT_USB_Device_Disconnect(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
-					void EVENT_USB_Device_ControlRequest(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+					bool EVENT_USB_Device_ControlRequest(struct USB_Request_Header* req) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
 					void EVENT_USB_Device_ConfigurationChanged(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
 					void EVENT_USB_Device_Suspend(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
 					void EVENT_USB_Device_WakeUp(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);

@@ -31,42 +31,48 @@ inline bool USB_handleGetDescriptor(USB_Request_Header_t* req){
 	return false;
 }
 
+inline bool USB_handleSetConfiguration(USB_Request_Header_t* req){
+	USB_ep_send_packet(0, 0);
+	USB_Device_ConfigurationNumber = (uint8_t)(req -> wValue);
+
+	if (USB_Device_ConfigurationNumber)
+	  USB_DeviceState = DEVICE_STATE_Configured;
+	else
+	  USB_DeviceState = (USB.ADDR) ? DEVICE_STATE_Configured : DEVICE_STATE_Powered;
+
+	EVENT_USB_Device_ConfigurationChanged();
+	return true;
+}
+
 bool USB_HandleSetup(void){
 	endpoints[0].out.CTRL |= USB_EP_TOGGLE_bm;
 	endpoints[0].in.CTRL |= USB_EP_TOGGLE_bm;
 	USB_Request_Header_t* req = (void *) ep0_buf_out;
 	
-	switch (req->bRequest){
-		case REQ_GetStatus:
-			ep0_buf_in[0] = 0;
-			ep0_buf_in[1] = 0;
-			USB_ep_send_packet(0, 2);
-			return true;
-		case REQ_ClearFeature:
-		case REQ_SetFeature:
-			USB_ep_send_packet(0, 0);
-			return true;
-		case REQ_SetAddress:
-			return USB_handleSetAddress(req);
-		case REQ_GetDescriptor:
-			return USB_handleGetDescriptor(req);
-		case REQ_GetConfiguration:
-			ep0_buf_in[0] = USB_Device_ConfigurationNumber;
-			USB_ep_send_packet(0, 1);
-			return true;
-		case REQ_SetConfiguration:
-			USB_ep_send_packet(0, 0);
-			USB_Device_ConfigurationNumber = (uint8_t)(req -> wValue);
-
-			if (USB_Device_ConfigurationNumber)
-			  USB_DeviceState = DEVICE_STATE_Configured;
-			else
-			  USB_DeviceState = (USB.ADDR) ? DEVICE_STATE_Configured : DEVICE_STATE_Powered;
-
-			EVENT_USB_Device_ConfigurationChanged();
-			return true;
+	if ((req->bmRequestType & CONTROL_REQTYPE_TYPE) == REQTYPE_STANDARD){
+		switch (req->bRequest){
+			case REQ_GetStatus:
+				ep0_buf_in[0] = 0;
+				ep0_buf_in[1] = 0;
+				USB_ep_send_packet(0, 2);
+				return true;
+			case REQ_ClearFeature:
+			case REQ_SetFeature:
+				USB_ep_send_packet(0, 0);
+				return true;
+			case REQ_SetAddress:
+				return USB_handleSetAddress(req);
+			case REQ_GetDescriptor:
+				return USB_handleGetDescriptor(req);
+			case REQ_GetConfiguration:
+				ep0_buf_in[0] = USB_Device_ConfigurationNumber;
+				USB_ep_send_packet(0, 1);
+				return true;
+			case REQ_SetConfiguration:
+				return USB_handleSetConfiguration(req);
+		}
 	}
 	
-	return false;
+	return EVENT_USB_Device_ControlRequest(req);
 }
 

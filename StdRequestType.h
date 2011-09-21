@@ -151,7 +151,7 @@
 			 *
 			 *  \see The USB 2.0 specification for more information on standard control requests.
 			 */
-			typedef struct
+			typedef struct USB_Request_Header
 			{
 				uint8_t  bmRequestType; /**< Type of the request. */
 				uint8_t  bRequest; /**< Request command code. */

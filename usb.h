@@ -16,7 +16,9 @@
 
 #define CPU_TO_LE16(x) x
 
-		
+struct USB_Request_Header;
+typedef struct USB_Request_Header USB_Requst_Header_t;
+
 #include "StdDescriptors.h"
 #include "StdRequestType.h"
 #include "Events.h"

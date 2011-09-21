@@ -31,8 +31,15 @@ void SetupHardware(void){
 }
 
 /** Event handler for the library USB Control Request reception event. */
-void EVENT_USB_Device_ControlRequest(void)
-{
-
+bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
+	if ((req->bmRequestType & CONTROL_REQTYPE_TYPE) == REQTYPE_VENDOR){
+		if (req->bRequest == 0x23){
+			timer = req->wValue;
+			USB_ep_send_packet(0, 0);
+			return true;
+		}
+	}
+	
+	return false;
 }
 
