@@ -38,7 +38,7 @@ typedef struct USB_EP_pair{
 
 extern uint8_t ep0_buf_in[USB_EP0SIZE];
 extern uint8_t ep0_buf_out[USB_EP0SIZE];
-extern USB_EP_pair_t endpoints[USB_MAXEP];
+extern USB_EP_pair_t endpoints[USB_MAXEP+1];
 
 /** String descriptor index for the device's unique serial number string descriptor within the device.
  *  This unique serial number is used by the host to associate resources to the device (such as drivers or COM port

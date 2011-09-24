@@ -12,7 +12,7 @@
 
 uint8_t ep0_buf_in[USB_EP0SIZE] __attribute__((aligned(4)));
 uint8_t ep0_buf_out[USB_EP0SIZE]  __attribute__((aligned(4)));
-USB_EP_pair_t endpoints[USB_MAXEP] __attribute__((aligned(4)));
+USB_EP_pair_t endpoints[USB_MAXEP+1] __attribute__((aligned(4)));
 
 
 volatile uint8_t USB_DeviceState;
@@ -48,7 +48,7 @@ void USB_ResetInterface(){
 	endpoints[0].in.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0SIZE);
 	endpoints[0].in.DATAPTR = (unsigned) &ep0_buf_in;
 	
-	USB.CTRLA = USB_ENABLE_bm | USB_SPEED_bm | 1;
+	USB.CTRLA = USB_ENABLE_bm | USB_SPEED_bm | USB_MAXEP;
 	
 	USB_Attach();
 }

@@ -58,7 +58,6 @@
 			extern "C" {
 		#endif
 
-
 	/* Public Interface - May be used in end-application: */
 		/* Macros: */
 			/** Indicates that a given descriptor does not exist in the device. This can be used inside descriptors
@@ -96,6 +95,21 @@
 			 *  to indicate that the English language is supported by the device in its string descriptors.
 			 */
 			#define LANGUAGE_ID_ENG                   0x0409
+
+			/** \name Endpoint Address Direction Masks */
+			//@{
+			/** Can be masked with an endpoint address for a \ref USB_Descriptor_Endpoint_t endpoint descriptor's
+			 *  EndpointAddress value to indicate to the host that the endpoint is of the IN direction (i.e, from
+			 *  device to host).
+			 */
+			#define ENDPOINT_DESCRIPTOR_DIR_IN        0x80
+
+			/** Can be masked with an endpoint address for a \ref USB_Descriptor_Endpoint_t endpoint descriptor's
+			 *  EndpointAddress value to indicate to the host that the endpoint is of the OUT direction (i.e, from
+			 *  host to device).
+			 */
+			#define ENDPOINT_DESCRIPTOR_DIR_OUT       0x00
+			//@}
 
 			/** \name USB Configuration Descriptor Attribute Masks */
 			//@{
@@ -172,6 +186,26 @@
 			 *  \see The USB specification for more details on the possible Endpoint usage attributes.
 			 */
 			#define ENDPOINT_USAGE_IMPLICIT_FEEDBACK  (2 << 4)
+			//@}
+			
+			/** \name Endpoint/Pipe Type Masks */
+			//@{
+			/** Mask for a CONTROL type endpoint or pipe.
+			 *
+			 */
+			#define EP_TYPE_CONTROL                    0x00
+
+			/** Mask for an ISOCHRONOUS type endpoint or pipe.
+			 */
+			#define EP_TYPE_ISOCHRONOUS                0x01
+
+			/** Mask for a BULK type endpoint or pipe.
+			 */
+			#define EP_TYPE_BULK                       0x02
+
+			/** Mask for an INTERRUPT type endpoint or pipe.
+			 */
+			#define EP_TYPE_INTERRUPT                  0x03
 			//@}
 			
 		/* Enums: */
@@ -676,8 +710,7 @@
 				                           *   Under GCC, strings prefixed with the "L" character (before
 				                           *   the opening string quotation mark) are considered to be
 				                           *   Unicode strings, and may be used instead of an explicit
-				                           *   array of ASCII characters on little endian devices with
-				                           *   UTF-16-LE \c wchar_t encoding.
+				                           *   array of ASCII characters.
 				                           */
 				#endif
 			} ATTR_PACKED USB_Descriptor_String_t;

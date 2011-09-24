@@ -108,7 +108,7 @@ OBJDIR = .
 
 # Path to the USB library
 USB_PATH = ..
-USB_OPTS  += -D USB_MAXEP=1
+USB_OPTS  += -D USB_MAXEP=2
 USB_OPTS  += -D USB_EP0SIZE=64
 
 include $(USB_PATH)/makefile

@@ -93,13 +93,31 @@ const USB_Descriptor_Configuration_t PROGMEM XmegaExample_ConfigurationDescripto
 			.InterfaceNumber        = 0,
 			.AlternateSetting       = 0,
 
-			.TotalEndpoints         = 0,
+			.TotalEndpoints         = 2,
 
 			.Class                  = USB_CSCP_VendorSpecificClass,
 			.SubClass               = 0x00,
 			.Protocol               = 0x00,
 
 			.InterfaceStrIndex      = NO_DESCRIPTOR
+		},
+	.Test_DataInEndpoint =
+		{
+			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+
+			.EndpointAddress        = (ENDPOINT_DESCRIPTOR_DIR_IN | 1),
+			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+			.EndpointSize           = 64,
+			.PollingIntervalMS      = 0x00
+		},
+	.Test_DataOutEndpoint =
+		{
+			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+
+			.EndpointAddress        = (ENDPOINT_DESCRIPTOR_DIR_OUT | 2),
+			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+			.EndpointSize           = 64,
+			.PollingIntervalMS      = 0x00
 		},
 };
 
