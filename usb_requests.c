@@ -1,4 +1,5 @@
 // Minimal USB Stack for ATxmega32a4u and related
+// http://nonolithlabs.com
 // (C) 2011 Kevin Mehall (Nonolith Labs) <km@kevinmehall.net>
 //
 // Heavily borrows from LUFA

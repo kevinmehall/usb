@@ -1,4 +1,5 @@
 // Demo USB device for ATxmega32a4u
+// http://nonolithlabs.com
 // (C) 2011 Kevin Mehall (Nonolith Labs) <km@kevinmehall.net>
 //
 // Licensed under the terms of the GNU GPLv3+
