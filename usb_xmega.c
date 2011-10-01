@@ -10,10 +10,10 @@
 #define __INCLUDE_FROM_EVENTS_C
 #include "usb.h"
 
-
-uint8_t ep0_buf_in[USB_EP0SIZE] __attribute__((aligned(4)));
-uint8_t ep0_buf_out[USB_EP0SIZE]  __attribute__((aligned(4)));
-USB_EP_pair_t endpoints[USB_MAXEP+1] __attribute__((aligned(4)));
+uint8_t pad; //Warning; GCC is ignoring the attribute(aligned)
+uint8_t ep0_buf_in[USB_EP0SIZE];
+uint8_t ep0_buf_out[USB_EP0SIZE];
+USB_EP_pair_t endpoints[USB_MAXEP+1] ATTR_ALIGNED(2);
 
 
 volatile uint8_t USB_DeviceState;
@@ -54,20 +54,14 @@ void USB_ResetInterface(){
 	USB_Attach();
 }
 
-
-void USB_ep_send_packet(uint8_t endpoint, uint16_t size){
-	endpoints[endpoint].in.CNT = size;
-	endpoints[endpoint].in.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm); // clear flags
-}
-
-void USB_sendFromFlash(uint8_t endpoint, const uint8_t* addr, uint16_t size){
+void USB_ep0_send_progmem(const uint8_t* addr, uint16_t size){
 	uint8_t *buf = ep0_buf_in;
 	uint16_t remaining = size;
 	NVM.CMD = NVM_CMD_NO_OPERATION_gc;
 	while (remaining--){
 		*buf++ = pgm_read_byte(addr++);
 	}
-	USB_ep_send_packet(endpoint, size);
+	USB_ep0_send(size);
 }
 
 void USB_Task(){

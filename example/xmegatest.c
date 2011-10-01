@@ -12,30 +12,25 @@ unsigned char bulkdataout[64];
 
 
 void configureEndpoint(void){
-	endpoints[1].in.DATAPTR = (unsigned) &bulkdatain;
-	endpoints[1].in.CNT = 64;
-	endpoints[1].in.STATUS = 0;
-	endpoints[1].in.CTRL = USB_EP_TYPE_BULK_gc | USB_EP_BUFSIZE_64_gc;
-	
-	endpoints[2].out.DATAPTR = (unsigned) &bulkdataout;
-	endpoints[2].out.CNT = 0;
-	endpoints[2].out.STATUS = USB_EP_TOGGLE_bm;
-	endpoints[2].out.CTRL = USB_EP_TYPE_BULK_gc | USB_EP_BUFSIZE_64_gc;
-	
+	USB_ep_in_init(1, USB_EP_TYPE_BULK_gc, 64);
+	USB_ep_in_start(1, bulkdatain, 64);
+	USB_ep_out_init(2, USB_EP_TYPE_BULK_gc, 64);
+	USB_ep_out_start(2, bulkdataout);
+
 	bulkdatain[5] = 123;
 	bulkdataout[5] = 55;
 }
 
 void pollEndpoint(void){
-	if (endpoints[1].in.STATUS & USB_EP_TRNCOMPL0_bm){
+	if (USB_ep_in_sent(1)){
 		bulkdatain[0]++;
 		if (bulkdatain[0] == 0) bulkdatain[1]++;
-		endpoints[1].in.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
+		USB_ep_in_start(1, bulkdatain, 64);
 	}
 	
-	if (endpoints[2].out.STATUS & USB_EP_TRNCOMPL0_bm){
+	if (USB_ep_out_received(2)){
 		bulkdatain[2] = bulkdataout[2];
-		endpoints[2].out.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
+		USB_ep_out_start(2, bulkdataout);
 	}
 }
 
@@ -71,7 +66,7 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 	if ((req->bmRequestType & CONTROL_REQTYPE_TYPE) == REQTYPE_VENDOR){
 		if (req->bRequest == 0x23){
 			timer = req->wValue;
-			USB_ep_send_packet(0, 0);
+			USB_ep0_send(0);
 			return true;
 		}
 	}

@@ -12,11 +12,10 @@
 inline bool USB_handleSetAddress(USB_Request_Header_t* req){
 	uint8_t    DeviceAddress = (req -> wValue & 0x7F);
 	endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm);
-	USB_ep_send_packet(0, 0);
+	USB_ep0_send(0);
 	while (!(endpoints[0].in.STATUS & USB_EP_TRNCOMPL0_bm)); // wait for status stage to complete
 	USB.ADDR = DeviceAddress;
 	USB_DeviceState = (DeviceAddress) ? DEVICE_STATE_Addressed : DEVICE_STATE_Default;
-	//timer = 15625/10;
 	return true;
 }
 
@@ -63,7 +62,7 @@ inline void USB_Device_GetInternalSerialDescriptor(void)
 	
 	USB_Device_GetSerialString(SignatureDescriptor->UnicodeString);
 
-	USB_ep_send_packet(0, sizeof(*SignatureDescriptor));
+	USB_ep0_send(sizeof(*SignatureDescriptor));
 }
 #endif
 
@@ -81,14 +80,14 @@ inline bool USB_handleGetDescriptor(USB_Request_Header_t* req){
 	
 	if ((DescriptorSize = CALLBACK_USB_GetDescriptor(req->wValue, req->wIndex, &DescriptorPointer))){
 		if (DescriptorSize > req->wLength) DescriptorSize=req->wLength;
-		USB_sendFromFlash(0, DescriptorPointer, DescriptorSize);
+		USB_ep0_send_progmem(DescriptorPointer, DescriptorSize);
 		return true;
 	}
 	return false;
 }
 
 inline bool USB_handleSetConfiguration(USB_Request_Header_t* req){
-	USB_ep_send_packet(0, 0);
+	USB_ep0_send(0);
 	USB_Device_ConfigurationNumber = (uint8_t)(req -> wValue);
 
 	if (USB_Device_ConfigurationNumber)
@@ -110,11 +109,11 @@ bool USB_HandleSetup(void){
 			case REQ_GetStatus:
 				ep0_buf_in[0] = 0;
 				ep0_buf_in[1] = 0;
-				USB_ep_send_packet(0, 2);
+				USB_ep0_send(2);
 				return true;
 			case REQ_ClearFeature:
 			case REQ_SetFeature:
-				USB_ep_send_packet(0, 0);
+				USB_ep0_send(0);
 				return true;
 			case REQ_SetAddress:
 				return USB_handleSetAddress(req);
@@ -122,7 +121,7 @@ bool USB_HandleSetup(void){
 				return USB_handleGetDescriptor(req);
 			case REQ_GetConfiguration:
 				ep0_buf_in[0] = USB_Device_ConfigurationNumber;
-				USB_ep_send_packet(0, 1);
+				USB_ep0_send(1);
 				return true;
 			case REQ_SetConfiguration:
 				return USB_handleSetConfiguration(req);

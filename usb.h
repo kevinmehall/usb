@@ -97,6 +97,15 @@ extern USB_EP_pair_t endpoints[USB_MAXEP+1];
 		                                                *   resumed.
 		                                                */
 	};
+
+#define USB_EP_size_to_gc(x)  ((x <= 8   )?USB_EP_BUFSIZE_8_gc:\
+                               (x <= 16  )?USB_EP_BUFSIZE_16_gc:\
+                               (x <= 32  )?USB_EP_BUFSIZE_32_gc:\
+                               (x <= 64  )?USB_EP_BUFSIZE_64_gc:\
+                               (x <= 128 )?USB_EP_BUFSIZE_128_gc:\
+                               (x <= 256 )?USB_EP_BUFSIZE_256_gc:\
+                               (x <= 512 )?USB_EP_BUFSIZE_512_gc:\
+                                           USB_EP_BUFSIZE_1023_gc)
 	
 extern volatile uint8_t USB_DeviceState;
 extern volatile uint8_t USB_Device_ConfigurationNumber;
@@ -109,10 +118,41 @@ void USB_ConfigureClock(void);
 /** Initialize USB functionality */
 void USB_Init(void);
 void USB_ResetInterface(void);
-void USB_ep_send_packet(uint8_t endpoint, uint16_t size);
-void USB_sendFromFlash(uint8_t endpoint, const uint8_t* addr, uint16_t size);
 void USB_Task(void);
 
+inline void USB_ep_in_init(uint8_t ep, uint8_t type, uint8_t bufsize){
+	endpoints[ep].in.STATUS = USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm;
+	endpoints[ep].in.CTRL = USB_EP_TYPE_BULK_gc | USB_EP_size_to_gc(bufsize);
+}
+
+inline void USB_ep_out_init(uint8_t ep, uint8_t type, uint8_t bufsize){
+	endpoints[ep].out.STATUS = USB_EP_TOGGLE_bm | USB_EP_BUSNACK0_bm ;
+	endpoints[ep].out.CTRL = USB_EP_TYPE_BULK_gc | USB_EP_size_to_gc(bufsize);
+}
+
+inline void USB_ep_out_start(uint8_t ep, uint8_t* addr){
+	endpoints[ep].out.DATAPTR = (unsigned) addr;
+	endpoints[ep].out.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
+}
+
+inline void USB_ep_in_start(uint8_t ep, uint8_t* addr, uint16_t size){
+	endpoints[ep].in.DATAPTR = (unsigned) addr;
+	endpoints[ep].in.CNT = size;
+	endpoints[ep].in.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
+}
+
+inline bool USB_ep_in_sent(uint8_t ep){
+	return endpoints[ep].in.STATUS & USB_EP_TRNCOMPL0_bm;
+}
+
+inline bool USB_ep_out_received(uint8_t ep){
+	return endpoints[ep].out.STATUS & USB_EP_TRNCOMPL0_bm;
+}
+
+inline void USB_ep0_send(uint8_t size){
+	USB_ep_in_start(0, ep0_buf_in, size);
+}
+void USB_ep0_send_progmem(const uint8_t* addr, uint16_t size);
 
 bool USB_HandleSetup(void);
 
@@ -139,14 +179,3 @@ static inline void USB_Attach(void)
 {
 	USB.CTRLB |= USB_ATTACH_bm;
 }
-
-#define USB_EP_size_to_gc(x)  ((x <= 8   )?USB_EP_BUFSIZE_8_gc:\
-                               (x <= 16  )?USB_EP_BUFSIZE_16_gc:\
-                               (x <= 32  )?USB_EP_BUFSIZE_32_gc:\
-                               (x <= 64  )?USB_EP_BUFSIZE_64_gc:\
-                               (x <= 128 )?USB_EP_BUFSIZE_128_gc:\
-                               (x <= 256 )?USB_EP_BUFSIZE_256_gc:\
-                               (x <= 512 )?USB_EP_BUFSIZE_512_gc:\
-                                           USB_EP_BUFSIZE_1023_gc)
-                               
-
