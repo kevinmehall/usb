@@ -149,6 +149,10 @@ inline bool USB_ep_out_received(uint8_t ep){
 	return endpoints[ep].out.STATUS & USB_EP_TRNCOMPL0_bm;
 }
 
+inline bool USB_ep_out_count(uint8_t ep){
+	return endpoints[ep].out.CNT;
+}
+
 inline void USB_ep0_send(uint8_t size){
 	USB_ep_in_start(0, ep0_buf_in, size);
 }
