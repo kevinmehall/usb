@@ -25,7 +25,7 @@ typedef struct USB_Request_Header USB_Requst_Header_t;
 #include "Events.h"
 
 #ifndef USB_MAXEP
-	#define USB_MAXEP 1;
+	#define USB_MAXEP 1
 #endif
 
 #ifndef USB_EP0SIZE

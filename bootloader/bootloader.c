@@ -15,12 +15,13 @@
 // Returns a BootloaderInfo with info about the device
 typedef struct{
 	uint8_t magic[4]; // String 0x90 0x90 0xBB 0x01
+	uint8_t version;
 	uint8_t DEVID0;   // Device/Revision ID from MCU. See XMEGA AU Manual p46
 	uint8_t DEVID1;
 	uint8_t DEVID2;
 	uint8_t REVID;
 	uint16_t page_size;
-	uint16_t app_section_end;
+	uint32_t app_section_end;
 	
 } BootloaderInfo;
 
@@ -75,7 +76,7 @@ int main(void){
 	PORTR.DIR = 0;
 	PORTR.PIN0CTRL = PORT_OPC_PULLUP_gc;
 	
-	for (uint16_t i=0; i<16384; i++);
+	for (volatile uint16_t i=0; i<512; i++);
 	
 	if (!(PORTR.IN & 0x01)){
 		runBootloader();
@@ -92,6 +93,7 @@ void fillInfoStruct(void){
 	i->magic[1] = 0x90;
 	i->magic[2] = 0xBB;
 	i->magic[3] = 0x01;
+	i->version = 0;
 	i->DEVID0 = MCU.DEVID0;
 	i->DEVID1 = MCU.DEVID1;
 	i->DEVID2 = MCU.DEVID2;
@@ -149,7 +151,7 @@ void pollEndpoint(void){
 		endpoints[1].out.STATUS &= ~USB_EP_TRNCOMPL0_bm;
 		pageOffs++;
 		
-		bool done = 0; // USB_ep_out_count(1) < EP1_SIZE;
+		bool done = 0; //USB_ep_out_count(1) < EP1_SIZE;
 		
 		if (pageOffs == PKTS_PER_PAGE || done){
 			PORTE.OUTTGL = (1<<0);
