@@ -37,7 +37,7 @@ typedef struct{
 // Return a CRC of the application section
 
 #define REQ_CRC_BOOT	0xB4
-// Return a CRC of the application section
+// Return a CRC of the boot section
 
 #define REQ_RESET	0xBF
 // After acknowledging this request, the bootloader disables USB and resets
@@ -77,7 +77,7 @@ int main(void){
 	
 	for (uint16_t i=0; i<16384; i++);
 	
-	if (1 || !(PORTR.IN & 0x01)){
+	if (!(PORTR.IN & 0x01)){
 		runBootloader();
 	}
 	
@@ -93,8 +93,8 @@ void fillInfoStruct(void){
 	i->magic[2] = 0xBB;
 	i->magic[3] = 0x01;
 	i->DEVID0 = MCU.DEVID0;
-	i->DEVID0 = MCU.DEVID1;
-	i->DEVID0 = MCU.DEVID2;
+	i->DEVID1 = MCU.DEVID1;
+	i->DEVID2 = MCU.DEVID2;
 	i->REVID = MCU.REVID;
 	i->page_size = APP_SECTION_PAGE_SIZE;
 	i->app_section_end = APP_SECTION_END;
@@ -127,7 +127,7 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 				return true;
 			case REQ_RESET:
 				USB_ep0_send(0);
-				while (!USB_ep_out_received(0)){}; // wait for status stage to finish
+				while (!USB_ep_in_sent(0)){}; // wait for status stage to finish
 				
 				USB_Detach();
 				
@@ -146,13 +146,19 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 
 void pollEndpoint(void){
 	if (USB_ep_out_received(1)){
+		endpoints[1].out.STATUS &= ~USB_EP_TRNCOMPL0_bm;
 		pageOffs++;
 		
-		bool done = USB_ep_out_count(1) < EP1_SIZE;
+		bool done = 0; // USB_ep_out_count(1) < EP1_SIZE;
 		
 		if (pageOffs == PKTS_PER_PAGE || done){
+			PORTE.OUTTGL = (1<<0);
 			SP_LoadFlashPage(pageBuf);
+			NVM.CMD = NVM_CMD_NO_OPERATION_gc;
 			SP_WriteApplicationPage(page*APP_SECTION_PAGE_SIZE);
+			SP_WaitForSPM();
+			NVM.CMD = NVM_CMD_NO_OPERATION_gc;
+			
 			page++;
 			pageOffs = 0;
 			for (int i=0; i<APP_SECTION_PAGE_SIZE; i++) pageBuf[i]=0;

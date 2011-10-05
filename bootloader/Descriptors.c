@@ -93,7 +93,7 @@ const USB_Descriptor_Configuration_t PROGMEM XmegaBootloader_ConfigurationDescri
 			.InterfaceNumber        = 0,
 			.AlternateSetting       = 0,
 
-			.TotalEndpoints         = 2,
+			.TotalEndpoints         = 1,
 
 			.Class                  = USB_CSCP_VendorSpecificClass,
 			.SubClass               = 0x00,
