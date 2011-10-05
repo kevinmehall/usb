@@ -620,11 +620,8 @@ extcoff: $(TARGET).elf
 	$(COFFCONVERT) -O coff-ext-avr $< $(TARGET).cof
 
 
-#REPOSITION_BOOTLOADER += --change-section-address .BOOT-$(BOOT_SECTION_START)
-#REPOSITION_BOOTLOADER += --change-section-address .text-$(BOOT_SECTION_START)
-#REPOSITION_BOOTLOADER += --change-section-address .data-$(BOOT_SECTION_START)
-#REPOSITION_BOOTLOADER += --change-section-address .bss-$(BOOT_SECTION_START)
-REPOSITION_BOOTLOADER = --change-addresses -$(BOOT_SECTION_START)
+REPOSITION_BOOTLOADER += -R .usbendpoints
+REPOSITION_BOOTLOADER += --change-addresses -$(BOOT_SECTION_START)
 
 # Create final output files (.hex, .eep) from ELF output file.
 %.hex: %.elf

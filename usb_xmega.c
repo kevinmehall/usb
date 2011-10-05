@@ -10,10 +10,9 @@
 #define __INCLUDE_FROM_EVENTS_C
 #include "usb.h"
 
-uint8_t pad; //Warning; GCC is ignoring the attribute(aligned)
 uint8_t ep0_buf_in[USB_EP0SIZE];
 uint8_t ep0_buf_out[USB_EP0SIZE];
-USB_EP_pair_t endpoints[USB_MAXEP+1] ATTR_ALIGNED(2);
+USB_EP_pair_t endpoints[USB_MAXEP+1] __attribute__((aligned(2), section(".usbendpoints")));
 
 
 volatile uint8_t USB_DeviceState;
