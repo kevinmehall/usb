@@ -154,7 +154,6 @@ void pollEndpoint(void){
 		bool done = 0; //USB_ep_out_count(1) < EP1_SIZE;
 		
 		if (pageOffs == PKTS_PER_PAGE || done){
-			PORTE.OUTTGL = (1<<0);
 			SP_LoadFlashPage(pageBuf);
 			NVM.CMD = NVM_CMD_NO_OPERATION_gc;
 			SP_WriteApplicationPage(page*APP_SECTION_PAGE_SIZE);

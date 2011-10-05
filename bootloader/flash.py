@@ -87,7 +87,10 @@ class Bootloader(object):
 		while i<len(data):
 			self.dev.write(1, data[i:i+tsize], 0, 1000)
 			i+=tsize
-			sys.stdout.write(BKSP*4+"% 3i%%"%(round(100*i/len(data))))
+			
+			percent = 100*i/len(data)
+			sys.stdout.write(BKSP*4+"% 3i%%"%(min(100, round(percent))))
+
 			sys.stdout.flush()
 			
 		sys.stdout.write('\n')
@@ -98,7 +101,7 @@ class Bootloader(object):
 		ih = IntelHex(fname)
 		bindata = ih.tobinstr(start=0, end=self.memsize, pad=0xff)
 		input_crc = atmel_crc(bindata)
-		print "Input CRC is", hex(input_crc)
+		print "Size=%s; CRC=%s"%(ih.maxaddr(), hex(input_crc))
 		
 		print "Erasing...",
 		self.erase()
@@ -118,8 +121,16 @@ class Bootloader(object):
 			print "CRC DOES NOT MATCH"
 			
 if __name__ == '__main__':
-	if len(sys.argv)!=2:
-		print "Usage: flash.py <file.hex>"
-		sys.exit(1)
 	b = Bootloader()
-	b.write_hex_file(sys.argv[1])
+	
+	if len(sys.argv)!=2:
+		print "Usage: flash.py <file.hex>|reset|crc"
+		sys.exit(1)
+	elif sys.argv[1] == 'reset':
+		print "Resetting"
+		b.reset()
+	elif sys.argv[1] == 'crc':
+		print "App CRC:", hex(b.app_crc())
+		print "Boot CRC:", hex(b.boot_crc())
+	else:
+		b.write_hex_file(sys.argv[1])
