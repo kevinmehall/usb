@@ -356,6 +356,7 @@ LDFLAGS += $(EXTMEMOPTS)
 LDFLAGS += $(patsubst %,-L%,$(EXTRALIBDIRS))
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 LDFLAGS += -Wl,--section-start=.text=$(BOOT_SECTION_START)
+LDFLAGS += -Wl,--section-start=.boot-entry=$(shell python -c "print hex($(BOOT_SECTION_START)+4096-8)")
 #LDFLAGS += -T linker_script.x
 
 
@@ -382,7 +383,7 @@ AVRDUDE_WRITE_FLASH = -e -U boot:w:$(TARGET).hex
 
 # Uncomment the following if you do /not/ wish a verification to be
 # performed after programming the device.
-AVRDUDE_NO_VERIFY = -V
+#AVRDUDE_NO_VERIFY = -V
 
 # Increase verbosity level.  Please use this when submitting bug
 # reports about avrdude. See <http://savannah.nongnu.org/projects/avrdude>

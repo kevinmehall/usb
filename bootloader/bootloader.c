@@ -22,6 +22,7 @@ typedef struct{
 	uint8_t REVID;
 	uint16_t page_size;
 	uint32_t app_section_end;
+	uint32_t entry_jmp_pointer;
 	
 } BootloaderInfo;
 
@@ -67,6 +68,11 @@ void runBootloader(void){
 	}
 }
 
+extern void enterBootloader(void) __attribute__((used, naked, section(".boot-entry")));
+void enterBootloader(void){
+	runBootloader();
+}
+
 int main(void){
 	void (*reset_vect)( void ) = 0x000000;
 	PORTR.DIR = 0;
@@ -81,6 +87,8 @@ int main(void){
 	PORTR.PIN0CTRL = 0;
 	EIND = 0x00;
     reset_vect();
+
+
 }
 
 void fillInfoStruct(void){
@@ -96,6 +104,7 @@ void fillInfoStruct(void){
 	i->REVID = MCU.REVID;
 	i->page_size = APP_SECTION_PAGE_SIZE;
 	i->app_section_end = APP_SECTION_END;
+	i->entry_jmp_pointer = (uint32_t) &enterBootloader;
 }
 
 bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
@@ -164,4 +173,3 @@ void pollEndpoint(void){
 		}
 	}
 }
-

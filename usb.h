@@ -157,7 +157,7 @@ inline void USB_ep0_send(uint8_t size){
 	USB_ep_in_start(0, ep0_buf_in, size);
 }
 void USB_ep0_send_progmem(const uint8_t* addr, uint16_t size);
-inline void USB_ep0_wait_for_complete(){
+inline void USB_ep0_wait_for_complete(void){
 	endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm);
 	while (!USB_ep_out_received(0) && !USB_ep_in_sent(0)){};
 }

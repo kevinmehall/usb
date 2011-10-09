@@ -32,3 +32,6 @@ def sendOut(d):
 
 def vendorGet():
 	return dev.ctrl_transfer(usb.util.CTRL_IN | usb.util.CTRL_TYPE_VENDOR, 0x23, 0, 0, 64)
+
+def bootloader():
+	return dev.ctrl_transfer(usb.util.CTRL_IN | usb.util.CTRL_TYPE_VENDOR, 0xbb, 0, 0, 64)

@@ -59,7 +59,7 @@ class Bootloader(object):
 
 	def read_info(self):
 		data = self.dev.ctrl_transfer(0x40|0x80, REQ_INFO, 0, 0, 64)
-		magic, version, part, pagesize, memsize =  struct.unpack("<4s B 4s H I", data)
+		magic, version, part, pagesize, memsize, jumpaddr = struct.unpack("<4s B 4s H I I", data[0:20])
 		return magic.encode('hex'), version, part.encode('hex'), pagesize, memsize
 	
 	def app_crc(self):
