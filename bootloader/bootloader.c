@@ -79,8 +79,10 @@ int main(void){
 	PORTR.PIN0CTRL = PORT_OPC_PULLUP_gc;
 	
 	_delay_us(1000);
+
+	uint16_t reset_vect_value = pgm_read_word(0);
 	
-	if (!(PORTR.IN & 0x01)){
+	if (!(PORTR.IN & 0x01) || reset_vect_value == 0xFFFF){
 		runBootloader();
 	}
 	
