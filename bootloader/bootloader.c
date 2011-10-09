@@ -147,18 +147,10 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 
 void pollEndpoint(void){
 	if (USB_ep_out_received(1)){		
-		bool done = 0;
-		uint8_t count = USB_ep_out_count(1);
-		if (count < EP1_SIZE){
-			// If the transfer ends early, it's time to write
-			done = 1;
-			// Fill the uninitialized parts of the page with 0xff
-			for (uint16_t i=pageOffs+count; i<APP_SECTION_PAGE_SIZE; i++) pageBuf[i]=0xff;
-		}else{
-			pageOffs += EP1_SIZE;
-		}
 		
-		if (pageOffs == APP_SECTION_PAGE_SIZE || done){
+		pageOffs += EP1_SIZE;
+
+		if (pageOffs == APP_SECTION_PAGE_SIZE){
 			// Write a page to flash
 			SP_LoadFlashPage(pageBuf);
 			NVM.CMD = NVM_CMD_NO_OPERATION_gc;
@@ -169,8 +161,8 @@ void pollEndpoint(void){
 			page++;
 			pageOffs = 0;
 		}
-		
-		if (!done){
+
+		if (page * APP_SECTION_PAGE_SIZE < APP_SECTION_END){
 			USB_ep_out_start(1, &pageBuf[pageOffs]);
 		}
 	}

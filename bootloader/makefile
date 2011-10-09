@@ -371,7 +371,7 @@ AVRDUDE_PROGRAMMER = avrispmkII
 # com1 = serial port. Use lpt1 to connect to parallel port.
 AVRDUDE_PORT = usb
 
-AVRDUDE_WRITE_FLASH = -U boot:w:$(TARGET).hex
+AVRDUDE_WRITE_FLASH = -e -U boot:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
 

@@ -76,9 +76,16 @@ class Bootloader(object):
 	def reset(self):
 		self.dev.ctrl_transfer(0x40|0x80, REQ_RESET, 0, 0, 0)
 	
-	def program(self, data):
+	def program(self, ih):
 		self.dev.ctrl_transfer(0x40|0x80, REQ_START_WRITE, 0, 0, 0)
 		
+		maxaddr = ih.maxaddr()
+		if maxaddr > self.memsize:
+			raise IOError("Input file size (%s) is too large to fit in flash (%s)"%(maxaddr, self.memsize))
+
+		maxaddr = maxaddr + (self.pagesize - (maxaddr)%self.pagesize - 1) #round up to nearest page
+		data = ih.tobinstr(start=0, end=maxaddr, pad=0xff)
+
 		sys.stdout.write('  0%')
 		sys.stdout.flush()
 		
@@ -108,7 +115,7 @@ class Bootloader(object):
 		print "done"
 		
 		print "Flashing...",
-		self.program(ih.tobinstr())
+		self.program(ih)
 		
 		dev_crc = self.app_crc()
 		print "Checked CRC is", hex(dev_crc)
