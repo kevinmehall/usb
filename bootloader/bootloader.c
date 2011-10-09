@@ -125,11 +125,8 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 				return true;
 			case REQ_RESET:
 				USB_ep0_send(0);
-				
-				while (!USB_ep_in_sent(0)){};
-				endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm);
-				_delay_us(1000);
-
+				USB_ep0_wait_for_complete();
+				_delay_us(10000);
 				USB_Detach();
 				
 				cli();
