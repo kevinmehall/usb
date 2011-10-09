@@ -53,7 +53,7 @@ class Bootloader(object):
 		self.magic, self.version, self.part, self.pagesize, self.memsize = self.read_info()
 		print "Bootloader ID %s, version %i"%(self.magic, self.version)
 		print "Part ID: %s = %s"%(self.part, lookup_part(self.part))
-		print "Flash size: %i (%i-byte pages)"%(self.memsize, self.pagesize)
+		print "Flash size: %i (%i-byte pages)"%(self.memsize+1, self.pagesize)
 
 	def read_info(self):
 		data = self.dev.ctrl_transfer(0x40|0x80, REQ_INFO, 0, 0, 64)
@@ -77,8 +77,6 @@ class Bootloader(object):
 	def program(self, data):
 		self.dev.ctrl_transfer(0x40|0x80, REQ_START_WRITE, 0, 0, 0)
 		
-		data = '\x00'*64+data # TODO: fix
-		
 		sys.stdout.write('  0%')
 		sys.stdout.flush()
 		
@@ -99,8 +97,8 @@ class Bootloader(object):
 	def write_hex_file(self, fname):
 		print "Loading input file", fname
 		ih = IntelHex(fname)
-		bindata = ih.tobinstr(start=0, end=self.memsize, pad=0xff)
-		input_crc = atmel_crc(bindata)
+
+		input_crc = atmel_crc(ih.tobinstr(start=0, end=self.memsize, pad=0xff))
 		print "Size=%s; CRC=%s"%(ih.maxaddr(), hex(input_crc))
 		
 		print "Erasing...",
@@ -108,7 +106,7 @@ class Bootloader(object):
 		print "done"
 		
 		print "Flashing...",
-		self.program(bindata)
+		self.program(ih.tobinstr())
 		
 		dev_crc = self.app_crc()
 		print "Checked CRC is", hex(dev_crc)

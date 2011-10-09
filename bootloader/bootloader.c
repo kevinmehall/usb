@@ -45,11 +45,10 @@ typedef struct{
 // the microcontroller
 
 uint16_t page;
-uint8_t pageOffs; 
+uint16_t pageOffs;
 uint8_t pageBuf[APP_SECTION_PAGE_SIZE];
 
 #define EP1_SIZE 64
-#define PKTS_PER_PAGE (APP_SECTION_PAGE_SIZE/EP1_SIZE)
 
 void pollEndpoint(void);
 
@@ -66,9 +65,6 @@ void runBootloader(void){
 		USB_Task();
 		pollEndpoint();
 	}
-	
-	//PORTE.DIRCLR = (1<<0) | (1<<1);
-	//cli();
 }
 
 int main(void){
@@ -76,7 +72,7 @@ int main(void){
 	PORTR.DIR = 0;
 	PORTR.PIN0CTRL = PORT_OPC_PULLUP_gc;
 	
-	for (volatile uint16_t i=0; i<512; i++);
+	_delay_us(1000);
 	
 	if (!(PORTR.IN & 0x01)){
 		runBootloader();
@@ -129,8 +125,11 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 				return true;
 			case REQ_RESET:
 				USB_ep0_send(0);
-				while (!USB_ep_in_sent(0)){}; // wait for status stage to finish
 				
+				while (!USB_ep_in_sent(0)){};
+				endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm);
+				_delay_us(1000);
+
 				USB_Detach();
 				
 				cli();
@@ -147,13 +146,20 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 }
 
 void pollEndpoint(void){
-	if (USB_ep_out_received(1)){
-		endpoints[1].out.STATUS &= ~USB_EP_TRNCOMPL0_bm;
-		pageOffs++;
+	if (USB_ep_out_received(1)){		
+		bool done = 0;
+		uint8_t count = USB_ep_out_count(1);
+		if (count < EP1_SIZE){
+			// If the transfer ends early, it's time to write
+			done = 1;
+			// Fill the uninitialized parts of the page with 0xff
+			for (uint16_t i=pageOffs+count; i<APP_SECTION_PAGE_SIZE; i++) pageBuf[i]=0xff;
+		}else{
+			pageOffs += EP1_SIZE;
+		}
 		
-		bool done = 0; //USB_ep_out_count(1) < EP1_SIZE;
-		
-		if (pageOffs == PKTS_PER_PAGE || done){
+		if (pageOffs == APP_SECTION_PAGE_SIZE || done){
+			// Write a page to flash
 			SP_LoadFlashPage(pageBuf);
 			NVM.CMD = NVM_CMD_NO_OPERATION_gc;
 			SP_WriteApplicationPage(page*APP_SECTION_PAGE_SIZE);
@@ -162,11 +168,10 @@ void pollEndpoint(void){
 			
 			page++;
 			pageOffs = 0;
-			for (int i=0; i<APP_SECTION_PAGE_SIZE; i++) pageBuf[i]=0;
 		}
 		
 		if (!done){
-			USB_ep_out_start(1, &pageBuf[pageOffs*EP1_SIZE]);
+			USB_ep_out_start(1, &pageBuf[pageOffs]);
 		}
 	}
 }

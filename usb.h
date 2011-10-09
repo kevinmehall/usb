@@ -126,7 +126,7 @@ inline void USB_ep_in_init(uint8_t ep, uint8_t type, uint8_t bufsize){
 }
 
 inline void USB_ep_out_init(uint8_t ep, uint8_t type, uint8_t bufsize){
-	endpoints[ep].out.STATUS = USB_EP_TOGGLE_bm | USB_EP_BUSNACK0_bm ;
+	endpoints[ep].out.STATUS = USB_EP_BUSNACK0_bm ;
 	endpoints[ep].out.CTRL = USB_EP_TYPE_BULK_gc | USB_EP_size_to_gc(bufsize);
 }
 
@@ -149,7 +149,7 @@ inline bool USB_ep_out_received(uint8_t ep){
 	return endpoints[ep].out.STATUS & USB_EP_TRNCOMPL0_bm;
 }
 
-inline bool USB_ep_out_count(uint8_t ep){
+inline uint8_t USB_ep_out_count(uint8_t ep){
 	return endpoints[ep].out.CNT;
 }
 
