@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import usb.core, usb.util
 import time
 import struct
@@ -50,6 +51,7 @@ BKSP = chr(0x08)
 class Bootloader(object):
 	def __init__(self, vid=0x9999, pid=0xb003):
 		self.dev = usb.core.find(idVendor=vid, idProduct=pid)
+		self.dev.set_configuration()
 		self.magic, self.version, self.part, self.pagesize, self.memsize = self.read_info()
 		print "Bootloader ID %s, version %i"%(self.magic, self.version)
 		print "Part ID: %s = %s"%(self.part, lookup_part(self.part))
