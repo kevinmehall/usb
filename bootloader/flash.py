@@ -126,18 +126,24 @@ class Bootloader(object):
 			self.reset()
 		else:
 			print "CRC DOES NOT MATCH"
-			
-if __name__ == '__main__':
-	b = Bootloader()
-	
-	if len(sys.argv)!=2:
-		print "Usage: flash.py <file.hex>|reset|crc"
-		sys.exit(1)
-	elif sys.argv[1] == 'reset':
-		print "Resetting"
-		b.reset()
-	elif sys.argv[1] == 'crc':
-		print "App CRC:", hex(b.app_crc())
-		print "Boot CRC:", hex(b.boot_crc())
-	else:
-		b.write_hex_file(sys.argv[1])
+
+	def handle_args(self, args):
+		if len(sys.argv)!=2:
+			print "Usage: flash.py <file.hex>|reset|crc"
+			sys.exit(1)
+		elif sys.argv[1] == 'reset':
+			print "Resetting"
+			self.reset()
+		elif sys.argv[1] == 'crc':
+			print "App CRC:", hex(self.app_crc())
+			print "Boot CRC:", hex(self.boot_crc())
+		else:
+			self.write_hex_file(sys.argv[1])
+
+if __name__ == "__main__":
+	try:
+		b = Bootloader()
+		b.handle_args(sys.argv)
+	except AttributeError:
+		print "can't find xmega in bootloader mode"
+		sys.exit(0)
