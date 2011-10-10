@@ -20,10 +20,9 @@ typedef struct{
 	uint8_t DEVID1;
 	uint8_t DEVID2;
 	uint8_t REVID;
-	uint16_t page_size;
-	uint32_t app_section_end;
-	uint32_t entry_jmp_pointer;
-	
+	uint16_t page_size;  // Page size in bytes
+	uint32_t app_section_end; // Byte address of end of flash. Add one for flash size
+	uint32_t entry_jmp_pointer; // App code can jump to this pointer to enter the bootloader
 } BootloaderInfo;
 
 #define REQ_ERASE		0xB1
@@ -45,15 +44,29 @@ typedef struct{
 // After acknowledging this request, the bootloader disables USB and resets
 // the microcontroller
 
+//
+// End protocol definition
+//
+
+
+
+/// Flash page number where received data will be written
 uint16_t page;
+
+/// Byte offset into flash page of next data to be received
 uint16_t pageOffs;
+
+/// Buffer of incoming flash page
 uint8_t pageBuf[APP_SECTION_PAGE_SIZE];
 
+/// Size of IN endpoint receiving flash data
 #define EP1_SIZE 64
 
 void pollEndpoint(void);
 
+/// Configure the device for bootloader mode and loop responding to bootloader commands
 void runBootloader(void){
+	// Turn on LED
 	PORTE.DIRSET = (1<<0) | (1<<1);
 	PORTE.OUTSET = (1<<0);
 	
@@ -68,31 +81,36 @@ void runBootloader(void){
 	}
 }
 
+/// Jump target at known address to call from application code to switch to bootloader
 extern void enterBootloader(void) __attribute__((used, naked, section(".boot-entry")));
 void enterBootloader(void){
 	runBootloader();
 }
 
 int main(void){
-	void (*reset_vect)( void ) = 0x000000;
+	// Pull up PR0 to test if it's being pulled low
 	PORTR.DIR = 0;
 	PORTR.PIN0CTRL = PORT_OPC_PULLUP_gc;
 	
 	_delay_us(1000);
 
+	// Get the value of the reset vector. If it's unprogrammed, we know
+	// there's nothing useful in app flash
 	uint16_t reset_vect_value = pgm_read_word(0);
 	
 	if (!(PORTR.IN & 0x01) || reset_vect_value == 0xFFFF){
 		runBootloader();
 	}
 	
+	// Otherwise, clean up and jump to the app
 	PORTR.PIN0CTRL = 0;
 	EIND = 0x00;
+	void (*reset_vect)( void ) = 0x000000;
     reset_vect();
-
-
 }
 
+
+/// Pack the ep0 input buffer with a response to REQ_INFO
 void fillInfoStruct(void){
 	BootloaderInfo *i=(BootloaderInfo*)ep0_buf_in;
 	i->magic[0] = 0x90;
@@ -109,6 +127,8 @@ void fillInfoStruct(void){
 	i->entry_jmp_pointer = (uint32_t) &enterBootloader;
 }
 
+
+/// Handle USB control requests
 bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 	if ((req->bmRequestType & CONTROL_REQTYPE_TYPE) == REQTYPE_VENDOR){
 		switch (req->bRequest){
@@ -153,6 +173,7 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 	return false;
 }
 
+
 void pollEndpoint(void){
 	if (USB_ep_out_received(1)){		
 		
@@ -171,6 +192,7 @@ void pollEndpoint(void){
 		}
 
 		if (page * APP_SECTION_PAGE_SIZE < APP_SECTION_END){
+			// If there's remaining room in flash, configure the endpoint to accept more data
 			USB_ep_out_start(1, &pageBuf[pageOffs]);
 		}
 	}
