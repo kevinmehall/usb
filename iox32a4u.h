@@ -1176,6 +1176,7 @@ typedef struct ADC_CH_struct
     register8_t INTFLAGS;  /* Interrupt Flags */
     _WORDREGISTER(RES);  /* Channel Result */
     register8_t SCAN;  /* Input Channel Scan */
+	 register8_t reserved_0x07;         /*Modified from Original file for a quick fix/patch */
 } ADC_CH_t;
 
 /* Analog-to-Digital Converter */
