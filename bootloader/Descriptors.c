@@ -53,7 +53,7 @@ const USB_Descriptor_Device_t PROGMEM XmegaBootloader_DeviceDescriptor =
 	.Protocol               = USB_CSCP_NoDeviceProtocol,
 
 	.Endpoint0Size          = 64,
-	.VendorID               = 0x9999,
+	.VendorID               = 0x59E3,
 	.ProductID              = 0xB003,
 	.ReleaseNumber          = VERSION_BCD(02.00),
 

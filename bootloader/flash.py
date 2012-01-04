@@ -49,7 +49,7 @@ def lookup_part(s):
 BKSP = chr(0x08)
 
 class Bootloader(object):
-	def __init__(self, vid=0x9999, pid=0xb003):
+	def __init__(self, vid=0x59E3, pid=0xb003):
 		self.dev = usb.core.find(idVendor=vid, idProduct=pid)
 		self.dev.set_configuration()
 		self.magic, self.version, self.part, self.pagesize, self.memsize = self.read_info()
