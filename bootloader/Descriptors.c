@@ -54,7 +54,7 @@ const USB_Descriptor_Device_t PROGMEM XmegaBootloader_DeviceDescriptor =
 
 	.Endpoint0Size          = 64,
 	.VendorID               = 0x59E3,
-	.ProductID              = 0xB003,
+	.ProductID              = 0xBBBB,
 	.ReleaseNumber          = VERSION_BCD(02.00),
 
 	.ManufacturerStrIndex   = 0x01,

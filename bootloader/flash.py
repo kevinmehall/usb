@@ -6,6 +6,9 @@ from zlib import crc32
 from intelhex import IntelHex
 import sys
 
+VID = 0x59E3
+PID = 0xBBBB
+
 REQ_INFO = 0xB0
 REQ_ERASE = 0xB1
 REQ_START_WRITE  = 0xB2
@@ -49,18 +52,25 @@ def lookup_part(s):
 BKSP = chr(0x08)
 
 class Bootloader(object):
-	def __init__(self, vid=0x59E3, pid=0xb003):
+	def __init__(self, vid=VID, pid=PID):
 		self.dev = usb.core.find(idVendor=vid, idProduct=pid)
+		if not self.dev:
+			raise IOError("can't find xmega in bootloader mode")
 		self.dev.set_configuration()
-		self.magic, self.version, self.part, self.pagesize, self.memsize = self.read_info()
+		self.read_info()
 		print "Bootloader ID %s, version %i"%(self.magic, self.version)
 		print "Part ID: %s = %s"%(self.part, lookup_part(self.part))
 		print "Flash size: %i (%i-byte pages)"%(self.memsize+1, self.pagesize)
+		print "Hardware: %s Version: %s"%(self.hw_product, self.hw_version)
 
 	def read_info(self):
 		data = self.dev.ctrl_transfer(0x40|0x80, REQ_INFO, 0, 0, 64)
-		magic, version, part, pagesize, memsize, jumpaddr = struct.unpack("<4s B 4s H I I", data[0:20])
-		return magic.encode('hex'), version, part.encode('hex'), pagesize, memsize
+		magic, self.version, part, self.pagesize, self.memsize, jumpaddr, hw_prod, hw_ver = \
+			    struct.unpack("<4s B 4s H I I 16s 16s", data[0:51])
+		self.magic = magic.encode('hex')
+		self.part = part.encode('hex')
+		self.hw_product = hw_prod
+		self.hw_version = hw_ver
 	
 	def app_crc(self):
 		data = self.dev.ctrl_transfer(0x40|0x80, REQ_CRC_APP, 0, 0, 4)
@@ -141,9 +151,5 @@ class Bootloader(object):
 			self.write_hex_file(sys.argv[1])
 
 if __name__ == "__main__":
-	try:
-		b = Bootloader()
-		b.handle_args(sys.argv)
-	except AttributeError:
-		print "can't find xmega in bootloader mode"
-		sys.exit(0)
+	b = Bootloader()
+	b.handle_args(sys.argv)

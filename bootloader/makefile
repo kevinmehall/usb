@@ -59,6 +59,18 @@
 #----------------------------------------------------------------------------
 
 
+#Configuration
+HW_PRODUCT=Unknown
+HW_VERSION=0
+CHECK_PORT=PORTR
+CHECK_PIN=0
+LED_PORT=PORTR
+LED_PIN=1
+
+CONFIG_FLAGS=-D HW_PRODUCT="$(HW_PRODUCT)" -D HW_VERSION="$(HW_VERSION)" \
+             -D CHECK_PORT=$(CHECK_PORT) -D CHECK_PIN=$(CHECK_PIN) \
+             -D LED_PORT=$(LED_PORT) -D LED_PIN=$(LED_PIN)
+
 # MCU name
 MCU = atxmega32a4
 ARCH = XMEGA
@@ -212,6 +224,7 @@ CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wa,-adhlns=$(<:%.c=$(OBJDIR)/%.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
+CFLAGS += $(CONFIG_FLAGS)
 
 
 #---------------- Compiler Options C++ ----------------

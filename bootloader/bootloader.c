@@ -23,6 +23,8 @@ typedef struct{
 	uint16_t page_size;  // Page size in bytes
 	uint32_t app_section_end; // Byte address of end of flash. Add one for flash size
 	uint32_t entry_jmp_pointer; // App code can jump to this pointer to enter the bootloader
+	char hw_product[16];
+	char hw_version[16];
 } BootloaderInfo;
 
 #define REQ_ERASE		0xB1
@@ -49,6 +51,36 @@ typedef struct{
 //
 
 
+// Override these with parameters in the makefile
+#ifndef HW_PRODUCT
+#error "HW_PRODUCT not specified"
+#endif
+
+#ifndef HW_VERSION
+#error "HW_VERSION not specified"
+#endif
+
+#ifndef CHECK_PORT
+#define CHECK_PORT PORTR
+#endif
+
+#ifndef CHECK_PIN
+#define CHECK_PIN 0
+#endif
+
+#ifndef LED_PORT
+#define LED_PORT PORTR
+#endif
+
+#ifndef LED_PIN
+#define LED_PIN 1
+#endif
+
+#define CONCAT_HIDDEN(a, b, c) a##b##c
+#define PINCTRL(n) CONCAT_HIDDEN(PIN, n, CTRL)
+
+#define xstringify(s) stringify(s)
+#define stringify(s) #s
 
 /// Flash page number where received data will be written
 uint16_t page;
@@ -67,17 +99,21 @@ void pollEndpoint(void);
 /// Configure the device for bootloader mode and loop responding to bootloader commands
 void runBootloader(void){
 	// Turn on LED
-	PORTE.DIRSET = (1<<0) | (1<<1);
-	PORTE.OUTSET = (1<<0);
+	LED_PORT.DIRSET = (1<<LED_PIN);
+	LED_PORT.OUTSET = (1<<LED_PIN);
 	
 	USB_ConfigureClock();
 	USB_Init();
 	USB_ep_out_init(1, USB_EP_TYPE_BULK_gc, EP1_SIZE);
 	sei();
 	
+	uint16_t i=0;
+	
 	while (1){
 		USB_Task();
 		pollEndpoint();
+		
+		if (++i == 0) LED_PORT.OUTTGL = (1 << LED_PIN);
 	}
 }
 
@@ -89,8 +125,8 @@ void enterBootloader(void){
 
 int main(void){
 	// Pull up PR0 to test if it's being pulled low
-	PORTR.DIR = 0;
-	PORTR.PIN0CTRL = PORT_OPC_PULLUP_gc;
+	CHECK_PORT.DIR = 0;
+	CHECK_PORT.PINCTRL(CHECK_PIN) = PORT_OPC_PULLUP_gc;
 	
 	_delay_us(1000);
 
@@ -98,7 +134,7 @@ int main(void){
 	// there's nothing useful in app flash
 	uint16_t reset_vect_value = pgm_read_word(0);
 	
-	if (!(PORTR.IN & 0x01) || reset_vect_value == 0xFFFF){
+	if (!(CHECK_PORT.IN & (1<<CHECK_PIN)) || reset_vect_value == 0xFFFF){
 		runBootloader();
 	}
 	
@@ -117,14 +153,16 @@ void fillInfoStruct(void){
 	i->magic[1] = 0x90;
 	i->magic[2] = 0xBB;
 	i->magic[3] = 0x01;
-	i->version = 0;
+	i->version = 1;
 	i->DEVID0 = MCU.DEVID0;
 	i->DEVID1 = MCU.DEVID1;
 	i->DEVID2 = MCU.DEVID2;
 	i->REVID = MCU.REVID;
 	i->page_size = APP_SECTION_PAGE_SIZE;
 	i->app_section_end = APP_SECTION_END;
-	i->entry_jmp_pointer = (uint32_t) &enterBootloader;
+	i->entry_jmp_pointer = (uint32_t) (unsigned) &enterBootloader;
+	strncpy(i->hw_product, xstringify(HW_PRODUCT), 16);
+	strncpy(i->hw_version, xstringify(HW_VERSION), 16);
 }
 
 
