@@ -369,6 +369,7 @@ LDFLAGS += $(EXTMEMOPTS)
 LDFLAGS += $(patsubst %,-L%,$(EXTRALIBDIRS))
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 LDFLAGS += -Wl,--section-start=.text=$(BOOT_SECTION_START)
+LDFLAGS += -Wl,--section-start=.noinit=0x802400 # magic flag for bootloader entry
 LDFLAGS += -Wl,--section-start=.boot-entry=$(shell python -c "print hex($(BOOT_SECTION_START)+4096-8)")
 #LDFLAGS += -T linker_script.x
 

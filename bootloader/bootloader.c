@@ -103,6 +103,9 @@ void runBootloader(void){
 	LED_PORT.OUTSET = (1<<LED_PIN);
 	
 	USB_ConfigureClock();
+	
+	_delay_us(100000); // 0.1s
+		
 	USB_Init();
 	USB_ep_out_init(1, USB_EP_TYPE_BULK_gc, EP1_SIZE);
 	sei();
@@ -117,10 +120,21 @@ void runBootloader(void){
 	}
 }
 
+#define BOOTLOADER_MAGIC 0x9090BB01
+uint32_t bootloaderflag __attribute__ ((section (".noinit"))); 
+
+void reset_into_bootloader(){
+	PMIC.CTRL = 0;
+	bootloaderflag = BOOTLOADER_MAGIC;
+    CCP = CCP_IOREG_gc;
+    RST.CTRL = RST_SWRST_bm;
+    while(1);
+}
+
 /// Jump target at known address to call from application code to switch to bootloader
 extern void enterBootloader(void) __attribute__((used, naked, section(".boot-entry")));
 void enterBootloader(void){
-	runBootloader();
+	reset_into_bootloader();
 }
 
 int main(void){
@@ -128,17 +142,20 @@ int main(void){
 	CHECK_PORT.DIR = 0;
 	CHECK_PORT.PINCTRL(CHECK_PIN) = PORT_OPC_PULLUP_gc;
 	
-	_delay_us(1000);
+	_delay_us(100);
 
-	// Get the value of the reset vector. If it's unprogrammed, we know
-	// there's nothing useful in app flash
-	uint16_t reset_vect_value = pgm_read_word(0);
-	
-	if (!(CHECK_PORT.IN & (1<<CHECK_PIN)) || reset_vect_value == 0xFFFF){
+	if (!(CHECK_PORT.IN & (1<<CHECK_PIN)) // If the specified pin is pulled LOW
+	|| pgm_read_word(0) == 0xFFFF // Get the value of the reset vector. If it's unprogrammed, we know
+	                               // there's nothing useful in app flash
+	|| (RST.STATUS & RST_SRF_bm && bootloaderflag == BOOTLOADER_MAGIC) // If the app code reset into the bootloader
+	){
+		bootloaderflag = 0;
 		runBootloader();
 	}
 	
 	// Otherwise, clean up and jump to the app
+	RST.STATUS = RST_SRF_bm;
+	bootloaderflag = 0;
 	PORTR.PIN0CTRL = 0;
 	EIND = 0x00;
 	void (*reset_vect)( void ) = 0x000000;
@@ -197,12 +214,13 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 				USB_ep0_wait_for_complete();
 				_delay_us(10000);
 				USB_Detach();
+				bootloaderflag = 0;
 				
 				cli();
-				uint8_t temp = WDT_ENABLE_bm | WDT_CEN_bm | WD_256CLK_gc;
+				_delay_us(100000); // 0.1s
 				CCP = CCP_IOREG_gc;
-				WDT.CTRL = temp;
-				while(1){}; // wait for WDT
+				RST.CTRL = RST_SWRST_bm;
+				while(1){};
 				
 				return true;
 		}
