@@ -100,8 +100,6 @@ inline bool USB_handleSetConfiguration(USB_Request_Header_t* req){
 }
 
 bool USB_HandleSetup(void){
-	endpoints[0].out.CTRL |= USB_EP_TOGGLE_bm;
-	endpoints[0].in.CTRL |= USB_EP_TOGGLE_bm;
 	USB_Request_Header_t* req = (void *) ep0_buf_out;
 	
 	if ((req->bmRequestType & CONTROL_REQTYPE_TYPE) == REQTYPE_STANDARD){

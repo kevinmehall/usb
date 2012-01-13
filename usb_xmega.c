@@ -37,7 +37,7 @@ void USB_ResetInterface(){
 	//if (USB_Options & USB_DEVICE_OPT_LOWSPEED)
 	//  CLK.USBCTRL = ((((F_USB / 6000000) - 1) << CLK_USBPSDIV_gp) | CLK_USBSRC_RC32M_gc | CLK_USBSEN_bm);
 	//else
-	  CLK.USBCTRL = ((((F_USB / 48000000) - 1) << CLK_USBPSDIV_gp) | CLK_USBSRC_RC32M_gc | CLK_USBSEN_bm);
+	CLK.USBCTRL = ((((F_USB / 48000000) - 1) << CLK_USBPSDIV_gp) | CLK_USBSRC_RC32M_gc | CLK_USBSEN_bm);
 	USB.EPPTR = (unsigned) &endpoints;
 	USB.ADDR = 0;
 	
@@ -70,8 +70,11 @@ void USB_Task(){
 	}
 
 	if (endpoints[0].out.STATUS & USB_EP_SETUP_bm){
+		endpoints[0].out.CTRL |= USB_EP_TOGGLE_bm;
+		endpoints[0].in.CTRL |= USB_EP_TOGGLE_bm;
 		if (!USB_HandleSetup()){
-			endpoints[0].out.CTRL |= USB_EP_STALL_bm; 
+			endpoints[0].out.CTRL |= USB_EP_STALL_bm;
+			endpoints[0].in.CTRL |= USB_EP_STALL_bm; 
 		}
 		endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm);
 	}else if(endpoints[0].out.STATUS & USB_EP_TRNCOMPL0_bm){
