@@ -76,9 +76,9 @@ void USB_Task(){
 			endpoints[0].out.CTRL |= USB_EP_STALL_bm;
 			endpoints[0].in.CTRL |= USB_EP_STALL_bm; 
 		}
-		endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm);
+		endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm );
 	}else if(endpoints[0].out.STATUS & USB_EP_TRNCOMPL0_bm){
-		// We currently don't care about OUT data stages, so just clear it
+		EVENT_USB_Device_ControlOUT((uint8_t *) ep0_buf_out, endpoints[0].out.CNT);
 		endpoints[0].out.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm);
 	}
 }
