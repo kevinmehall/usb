@@ -130,6 +130,14 @@ inline void USB_ep_out_init(uint8_t ep, uint8_t type, uint8_t bufsize){
 	endpoints[ep].out.CTRL = USB_EP_TYPE_BULK_gc | USB_EP_size_to_gc(bufsize);
 }
 
+inline void USB_ep_in_reset(uint8_t ep){
+	endpoints[ep].in.STATUS = USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | (endpoints[ep].in.STATUS & USB_EP_TOGGLE_bm);
+}
+
+inline void USB_ep_out_reset(uint8_t ep){
+	endpoints[ep].out.STATUS = USB_EP_BUSNACK0_bm  | (endpoints[ep].out.STATUS & USB_EP_TOGGLE_bm);
+}
+
 inline void USB_ep_out_start(uint8_t ep, uint8_t* addr){
 	endpoints[ep].out.DATAPTR = (unsigned) addr;
 	endpoints[ep].out.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
