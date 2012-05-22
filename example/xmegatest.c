@@ -26,6 +26,12 @@ void pollEndpoint(void){
 		USB_ep_out_start(2, bulkdataout);
 		outcntr++;
 	}
+	if (USB_ep_in_sent(1)){
+		bulkdatain[0]++;
+		if (bulkdatain[0] == 0) bulkdatain[1]++;
+		USB_ep_in_start(1, bulkdatain, 64);
+	}
+
 }
 
 int main(void){
