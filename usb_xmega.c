@@ -7,7 +7,7 @@
 //
 // Licensed under the terms of the GNU GPLv3+
 
-#define __INCLUDE_FROM_EVENTS_C
+#define DEFINE_EVENT_ALIASES
 #include "usb.h"
 
 uint8_t ep0_buf_in[USB_EP0SIZE];
@@ -110,7 +110,3 @@ void USB_ConfigureClock(){
     CLK.PSCTRL = 0x00; // No peripheral clock prescaler
 }
 
-void USB_Event_Stub(void)
-{
-
-}
