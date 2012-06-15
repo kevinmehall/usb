@@ -99,6 +99,20 @@ inline bool USB_handleSetConfiguration(USB_Request_Header_t* req){
 	return true;
 }
 
+inline bool USB_handleGetInterface(USB_Request_Header_t* req){
+	ep0_buf_in[0] = 0; // lie
+	USB_ep0_send(1);
+	return true;
+}
+
+inline bool USB_handleSetInterface(USB_Request_Header_t* req){
+	//uint8_t interface = req->wIndex;
+	//uint8_t altSetting = req->wValue;
+	
+	USB_ep0_send(0);
+	return true;
+}
+
 bool USB_HandleSetup(void){
 	USB_Request_Header_t* req = (void *) ep0_buf_out;
 	
@@ -123,6 +137,10 @@ bool USB_HandleSetup(void){
 				return true;
 			case REQ_SetConfiguration:
 				return USB_handleSetConfiguration(req);
+			case REQ_SetInterface:
+				return USB_handleSetInterface(req);
+			case REQ_GetInterface:
+				return USB_handleGetInterface(req);
 		}
 	}
 	
