@@ -120,14 +120,14 @@ void USB_Init(void);
 void USB_ResetInterface(void);
 void USB_Task(void);
 
-inline void USB_ep_in_init(uint8_t ep, uint8_t type, uint8_t bufsize){
+inline void USB_ep_in_init(uint8_t ep, uint8_t type, uint16_t bufsize){
 	endpoints[ep].in.STATUS = USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm;
-	endpoints[ep].in.CTRL = USB_EP_TYPE_BULK_gc | USB_EP_size_to_gc(bufsize);
+	endpoints[ep].in.CTRL = type | USB_EP_size_to_gc(bufsize);
 }
 
-inline void USB_ep_out_init(uint8_t ep, uint8_t type, uint8_t bufsize){
+inline void USB_ep_out_init(uint8_t ep, uint8_t type, uint16_t bufsize){
 	endpoints[ep].out.STATUS = USB_EP_BUSNACK0_bm ;
-	endpoints[ep].out.CTRL = USB_EP_TYPE_BULK_gc | USB_EP_size_to_gc(bufsize);
+	endpoints[ep].out.CTRL = type | USB_EP_size_to_gc(bufsize);
 }
 
 inline void USB_ep_in_reset(uint8_t ep){
