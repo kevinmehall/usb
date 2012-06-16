@@ -7,6 +7,7 @@
 //
 // Licensed under the terms of the GNU GPLv3+
 
+#include <avr/io.h>
 #include "usb.h"
 
 inline bool USB_handleSetAddress(USB_Request_Header_t* req){

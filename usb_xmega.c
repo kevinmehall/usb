@@ -7,6 +7,8 @@
 //
 // Licensed under the terms of the GNU GPLv3+
 
+#include <avr/io.h>
+
 #define DEFINE_EVENT_ALIASES
 #include "usb.h"
 
