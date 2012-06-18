@@ -14,7 +14,7 @@ inline bool USB_handleSetAddress(USB_Request_Header_t* req){
 	uint8_t    DeviceAddress = (req -> wValue & 0x7F);
 	endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm);
 	USB_ep0_send(0);
-	while (!(endpoints[0].in.STATUS & USB_EP_TRNCOMPL0_bm)); // wait for status stage to complete
+	USB_ep_wait(0x80);
 	USB.ADDR = DeviceAddress;
 	USB_DeviceState = (DeviceAddress) ? DEVICE_STATE_Addressed : DEVICE_STATE_Default;
 	return true;

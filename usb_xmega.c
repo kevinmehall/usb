@@ -14,7 +14,7 @@
 
 uint8_t ep0_buf_in[USB_EP0SIZE];
 uint8_t ep0_buf_out[USB_EP0SIZE];
-USB_EP_pair_t endpoints[USB_MAXEP+1] __attribute__((aligned(2), section(".usbendpoints")));
+USB_EP_pair_t endpoints[USB_MAXEP+1] GCC_FORCE_ALIGN_2;
 
 
 volatile uint8_t USB_DeviceState;

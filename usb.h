@@ -9,12 +9,6 @@
 
 #pragma once
 
-#define USB_CAN_BE_DEVICE
-#define ARCH_XMEGA 2
-#if !defined(ARCH)
-	#define ARCH        ARCH_XMEGA
-#endif
-
 #define CPU_TO_LE16(x) x
 
 struct USB_Request_Header;
@@ -120,56 +114,65 @@ void USB_Init(void);
 void USB_ResetInterface(void);
 void USB_Task(void);
 
-inline void USB_ep_in_init(uint8_t ep, uint8_t type, uint16_t bufsize){
-	endpoints[ep].in.STATUS = USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm;
-	endpoints[ep].in.CTRL = type | USB_EP_size_to_gc(bufsize);
+#define USB_EP(epaddr) \
+	USB_EP_pair_t* pair = &endpoints[(epaddr & 0x7F)]; \
+	USB_EP_t* e = (epaddr&0x80)?&pair->in:&pair->out;
+
+inline void USB_ep_init(uint8_t ep, uint8_t type, uint16_t bufsize) ATTR_ALWAYS_INLINE;
+inline void USB_ep_init(uint8_t ep, uint8_t type, uint16_t bufsize){
+	USB_EP(ep);
+	e->STATUS = USB_EP_BUSNACK0_bm;
+	e->CTRL = type | USB_EP_size_to_gc(bufsize);
 }
 
-inline void USB_ep_out_init(uint8_t ep, uint8_t type, uint16_t bufsize){
-	endpoints[ep].out.STATUS = USB_EP_BUSNACK0_bm ;
-	endpoints[ep].out.CTRL = type | USB_EP_size_to_gc(bufsize);
+inline void USB_ep_cancel(uint8_t ep) ATTR_ALWAYS_INLINE;
+inline void USB_ep_cancel(uint8_t ep){
+	USB_EP(ep);
+	e->STATUS |= USB_EP_BUSNACK0_bm;
 }
 
-inline void USB_ep_in_reset(uint8_t ep){
-	endpoints[ep].in.STATUS = USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | (endpoints[ep].in.STATUS & USB_EP_TOGGLE_bm);
-}
-
-inline void USB_ep_out_reset(uint8_t ep){
-	endpoints[ep].out.STATUS = USB_EP_BUSNACK0_bm  | (endpoints[ep].out.STATUS & USB_EP_TOGGLE_bm);
-}
-
+inline void USB_ep_out_start(uint8_t ep, uint8_t* addr) ATTR_ALWAYS_INLINE;
 inline void USB_ep_out_start(uint8_t ep, uint8_t* addr){
-	endpoints[ep].out.DATAPTR = (unsigned) addr;
-	endpoints[ep].out.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
+	USB_EP(ep);
+	e->DATAPTR = (unsigned) addr;
+	e->STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
 }
 
+inline void USB_ep_in_start(uint8_t ep, uint8_t* addr, uint16_t size) ATTR_ALWAYS_INLINE;
 inline void USB_ep_in_start(uint8_t ep, uint8_t* addr, uint16_t size){
-	endpoints[ep].in.DATAPTR = (unsigned) addr;
-	endpoints[ep].in.CNT = size;
-	endpoints[ep].in.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
+	USB_EP(ep);
+	e->DATAPTR = (unsigned) addr;
+	e->CNT = size;
+	e->STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
 }
 
-inline bool USB_ep_in_sent(uint8_t ep){
-	return endpoints[ep].in.STATUS & USB_EP_TRNCOMPL0_bm;
+inline bool USB_ep_done(uint8_t ep) ATTR_ALWAYS_INLINE;
+inline bool USB_ep_done(uint8_t ep){
+	USB_EP(ep);
+	return e->STATUS & USB_EP_TRNCOMPL0_bm;
 }
 
-inline bool USB_ep_out_received(uint8_t ep){
-	return endpoints[ep].out.STATUS & USB_EP_TRNCOMPL0_bm;
+inline bool USB_ep_ready(uint8_t ep) ATTR_ALWAYS_INLINE;
+inline bool USB_ep_ready(uint8_t ep){
+	USB_EP(ep);
+	return e->STATUS & USB_EP_BUSNACK0_bm;
 }
 
-inline uint8_t USB_ep_out_count(uint8_t ep){
-	return endpoints[ep].out.CNT;
+inline uint16_t USB_ep_count(uint8_t ep) ATTR_ALWAYS_INLINE;
+inline uint16_t USB_ep_count(uint8_t ep){
+	USB_EP(ep);
+	return e->CNT;
 }
 
 inline void USB_ep0_send(uint8_t size){
-	USB_ep_in_start(0, ep0_buf_in, size);
+	USB_ep_in_start(0x80, ep0_buf_in, size);
 }
 void USB_ep0_send_progmem(const uint8_t* addr, uint16_t size);
-inline void USB_ep0_wait_for_complete(void){
-	endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm);
-	while (!USB_ep_out_received(0) && !USB_ep_in_sent(0)){};
-}
 
+inline void USB_ep_wait(uint8_t ep) ATTR_ALWAYS_INLINE;
+inline void USB_ep_wait(uint8_t ep){
+	while (!USB_ep_done(ep)){};
+}
 
 bool USB_HandleSetup(void);
 
@@ -195,4 +198,14 @@ static inline void USB_Attach(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Attach(void)
 {
 	USB.CTRLB |= USB_ATTACH_bm;
+}
+
+static inline void USB_enter_bootloader(void){
+	USB_ep0_send(0);
+	USB_ep_wait(0x80);
+	_delay_us(10000);
+	USB_Detach();
+	_delay_us(100000);
+	void (*enter_bootloader)(void) = (void*) 0x47fc /*0x8ff8/2*/;
+	enter_bootloader();
 }
