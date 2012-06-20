@@ -12,7 +12,7 @@
 
 inline bool USB_handleSetAddress(USB_Request_Header_t* req){
 	uint8_t    DeviceAddress = (req -> wValue & 0x7F);
-	endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm);
+	USB_ep0_enableOut();
 	USB_ep0_send(0);
 	USB_ep_wait(0x80);
 	USB.ADDR = DeviceAddress;

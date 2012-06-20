@@ -175,6 +175,14 @@ inline void USB_ep_wait(uint8_t ep){
 	while (!USB_ep_done(ep)){};
 }
 
+// Enable the OUT stage on the default control pipe. This happens automatically
+// upon the return of HandleSetup, but use this function if it needs to happen
+// before returning (e.g. with USB_ep_wait()).
+inline void USB_ep0_enableOut(void) ATTR_ALWAYS_INLINE;
+inline void USB_ep0_enableOut(void){
+	endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
+}
+
 bool USB_HandleSetup(void);
 
 uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
@@ -203,7 +211,8 @@ static inline void USB_Attach(void)
 
 static inline void USB_enter_bootloader(void){
 	USB_ep0_send(0);
-	USB_ep_wait(0x80);
+	USB_ep0_enableOut();
+	USB_ep_wait(0x00); // Wait for the status stage to complete
 	_delay_us(10000);
 	USB_Detach();
 	_delay_us(100000);

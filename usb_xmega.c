@@ -70,18 +70,21 @@ void USB_Task(){
 		USB.STATUS &= ~USB_BUSRST_bm;
 		USB_Init();
 	}
+	
+	// Read once to prevent race condition where SETUP packet is interpreted as OUT
+	uint8_t status = endpoints[0].out.STATUS;
 
-	if (endpoints[0].out.STATUS & USB_EP_SETUP_bm){
+	if (status & USB_EP_SETUP_bm){
 		endpoints[0].out.CTRL |= USB_EP_TOGGLE_bm;
 		endpoints[0].in.CTRL |= USB_EP_TOGGLE_bm;
 		if (!USB_HandleSetup()){
 			endpoints[0].out.CTRL |= USB_EP_STALL_bm;
 			endpoints[0].in.CTRL |= USB_EP_STALL_bm; 
 		}
-		endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm );
-	}else if(endpoints[0].out.STATUS & USB_EP_TRNCOMPL0_bm){
+		USB_ep0_enableOut();
+	}else if(status & USB_EP_TRNCOMPL0_bm){
 		EVENT_USB_Device_ControlOUT((uint8_t *) ep0_buf_out, endpoints[0].out.CNT);
-		endpoints[0].out.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm);
+		USB_ep0_enableOut();
 	}
 }
 
