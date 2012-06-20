@@ -58,7 +58,7 @@
 #include <stddef.h>
 
 /* Architecture specific utility includes: */
-#if (ARCH == ARCH_XMEGA)
+#ifdef  __AVR__ 
 	#include <avr/io.h>
 	#include <avr/interrupt.h>
 	#include <avr/pgmspace.h>
@@ -71,8 +71,6 @@
 	#define ARCH_HAS_FLASH_ADDRESS_SPACE
 	#define ARCH_HAS_MULTI_ADDRESS_SPACE
 	#define ARCH_LITTLE_ENDIAN	
-#else
-	#error Unknown device architecture specified.
 #endif
 
 /* Public Interface - May be used in end-application: */

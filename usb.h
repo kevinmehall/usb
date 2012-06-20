@@ -100,11 +100,11 @@ extern USB_EP_pair_t endpoints[USB_MAXEP+1];
                                (x <= 256 )?USB_EP_BUFSIZE_256_gc:\
                                (x <= 512 )?USB_EP_BUFSIZE_512_gc:\
                                            USB_EP_BUFSIZE_1023_gc)
+
+#define USB_EP_IN 0x80
 	
 extern volatile uint8_t USB_DeviceState;
 extern volatile uint8_t USB_Device_ConfigurationNumber;
-
-
 
 /** Configure the XMEGA's clock for use with USB.  */
 void USB_ConfigureClock(void);
@@ -129,6 +129,7 @@ inline void USB_ep_cancel(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline void USB_ep_cancel(uint8_t ep){
 	USB_EP(ep);
 	e->STATUS |= USB_EP_BUSNACK0_bm;
+	//if (ep&0x80) e->STATUS |= USB_EP_TRNCOMPL0_bm
 }
 
 inline void USB_ep_out_start(uint8_t ep, uint8_t* addr) ATTR_ALWAYS_INLINE;
