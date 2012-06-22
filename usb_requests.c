@@ -88,6 +88,16 @@ inline bool USB_handleGetDescriptor(USB_Request_Header_t* req){
 }
 
 inline bool USB_handleSetConfiguration(USB_Request_Header_t* req){
+	USB_Descriptor_Device_t* DevDescriptorPtr;
+
+	uint8_t r = CALLBACK_USB_GetDescriptor((DTYPE_Device << 8), 0, (void*)&DevDescriptorPtr);
+	if (r == NO_DESCRIPTOR) return false;
+	
+	NVM.CMD = NVM_CMD_NO_OPERATION_gc;
+	uint8_t num_configs = pgm_read_byte(&DevDescriptorPtr->NumberOfConfigurations);
+	
+	if ((uint8_t)req->wValue > num_configs) return false;
+
 	USB_ep0_send(0);
 	USB_Device_ConfigurationNumber = (uint8_t)(req -> wValue);
 
