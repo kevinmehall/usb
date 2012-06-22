@@ -154,9 +154,10 @@ inline void USB_ep_cancel(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline void USB_ep_cancel(uint8_t ep){
 	_USB_EP(ep);
 	if (ep & USB_EP_PP){
-		e->STATUS = (e->STATUS | USB_EP_BUSNACK0_bm | USB_EP_BUSNACK1_bm)&~USB_EP_BANK_bm;
+		LASR16(&e->STATUS, USB_EP_BUSNACK0_bm | USB_EP_BUSNACK1_bm);
+		LACR16(&e->STATUS, USB_EP_BANK_bm);
 	}else{
-		e->STATUS |= USB_EP_BUSNACK0_bm;
+		LASR16(&e->STATUS, USB_EP_BUSNACK0_bm);
 	}
 }
 
@@ -164,38 +165,41 @@ inline void USB_ep_start_bank(uint8_t ep, uint8_t bank, uint8_t* addr, uint16_t 
 	_USB_EP(ep);
 	_USB_EP_BANK(ep, bank);
 	b->DATAPTR = (unsigned) addr;
-	b->STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
 	if (ep & USB_EP_IN) b->CNT = size;
 	
-	//TODO: atomic RMW
-	e->STATUS &= ~(bank?USB_EP_BUSNACK1_bm:USB_EP_BUSNACK0_bm);
+	//TODO: the OVF, STALL, and TRNCOMPL flags are in b->STATUS. Clear them if anyone cares.
+
+	if (bank==0){
+		LACR16(&(e->STATUS), USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm);
+	}else{
+		LACR16(&(e->STATUS), USB_EP_BUSNACK1_bm | USB_EP_TRNCOMPL1_bm);
+	}
 }
 
 inline void USB_ep_out_start(uint8_t ep, uint8_t* addr) ATTR_ALWAYS_INLINE;
 inline void USB_ep_out_start(uint8_t ep, uint8_t* addr){
-	_USB_EP(ep);
-	e->DATAPTR = (unsigned) addr;
-	e->STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
+	USB_ep_start_bank(ep, 0, addr, 0);
 }
 
 inline void USB_ep_in_start(uint8_t ep, uint8_t* addr, uint16_t size) ATTR_ALWAYS_INLINE;
 inline void USB_ep_in_start(uint8_t ep, uint8_t* addr, uint16_t size){
-	_USB_EP(ep);
-	e->DATAPTR = (unsigned) addr;
-	e->CNT = size;
-	e->STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
+	USB_ep_start_bank(ep, 0, addr, size);
 }
 
 inline bool USB_ep_done_bank(uint8_t ep, uint8_t bank){
 	_USB_EP(ep);
-	_USB_EP_BANK(ep, bank);
-	return b->STATUS & USB_EP_TRNCOMPL0_bm;
+	return e->STATUS & (bank?USB_EP_TRNCOMPL1_bm:USB_EP_TRNCOMPL0_bm);
 }
 
 inline bool USB_ep_done(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline bool USB_ep_done(uint8_t ep){
 	_USB_EP(ep);
-	return e->STATUS & USB_EP_TRNCOMPL0_bm;
+	if (ep & USB_EP_PP){
+		return e->STATUS & (USB_EP_TRNCOMPL0_bm|USB_EP_TRNCOMPL1_bm);
+	}else{
+		// Because for ep0, TRNCOMPL1 is SETUP
+		return e->STATUS & USB_EP_TRNCOMPL0_bm;
+	}
 }
 
 inline bool USB_ep_ready(uint8_t ep) ATTR_ALWAYS_INLINE;
@@ -204,10 +208,16 @@ inline bool USB_ep_ready(uint8_t ep){
 	return e->STATUS & (USB_EP_BUSNACK0_bm | USB_EP_BUSNACK1_bm);
 }
 
+inline uint16_t USB_ep_count_bank(uint8_t ep, uint8_t bank) ATTR_ALWAYS_INLINE;
+inline uint16_t USB_ep_count_bank(uint8_t ep, uint8_t bank){
+	_USB_EP(ep);
+	_USB_EP_BANK(ep, bank);
+	return b->CNT;
+}
+
 inline uint16_t USB_ep_count(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline uint16_t USB_ep_count(uint8_t ep){
-	_USB_EP(ep);
-	return e->CNT;
+	return USB_ep_count_bank(ep, 0);
 }
 
 inline void USB_ep0_send(uint8_t size){
@@ -225,7 +235,7 @@ inline void USB_ep_wait(uint8_t ep){
 // before returning (e.g. with USB_ep_wait()).
 inline void USB_ep0_enableOut(void) ATTR_ALWAYS_INLINE;
 inline void USB_ep0_enableOut(void){
-	endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
+	LACR16(&endpoints[0].out.STATUS, USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
 }
 
 bool USB_HandleSetup(void);

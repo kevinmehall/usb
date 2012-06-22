@@ -42,12 +42,6 @@
  *
  *  @{
  */
- 
-/** \defgroup Group_GlobalInt Global Interrupt Macros
- *  \brief Convenience macros for the management of interrupts globally within the device.
- *
- *  Macros and functions to create and control global interrupts within the device.
- */
 
 #pragma once
 
@@ -71,6 +65,54 @@
 	#define ARCH_HAS_FLASH_ADDRESS_SPACE
 	#define ARCH_HAS_MULTI_ADDRESS_SPACE
 	#define ARCH_LITTLE_ENDIAN	
+	
+	
+	/// From Atmel: Macros for XMEGA instructions not yet supported by the toolchain
+	// Load and Clear 
+	#ifdef __GNUC__
+	#define LACR16(addr,msk) \
+		__asm__ __volatile__ ( \
+		"ldi r16, %1" "\n\t" \
+		".dc.w 0x9306" "\n\t"\
+		::"z" (addr), "M" (msk):"r16")
+	#else
+		#define LACR16(addr,msk) __lac((unsigned char)msk,(unsigned char*)addr)
+	#endif
+	 
+	// Load and Set
+	#ifdef __GNUC__
+	#define LASR16(addr,msk) \
+		__asm__ __volatile__ ( \
+		"ldi r16, %1" "\n\t" \
+		".dc.w 0x9305" "\n\t"\
+		::"z" (addr), "M" (msk):"r16")
+	#else
+	#define LASR16(addr,msk) __las((unsigned char)msk,(unsigned char*)addr)
+	#endif
+
+	// Exchange
+	#ifdef __GNUC__
+	#define XCHR16(addr,msk) \
+		__asm__ __volatile__ ( \
+		"ldi r16, %1" "\n\t" \
+		".dc.w 0x9304" "\n\t"\
+		::"z" (addr), "M" (msk):"r16")
+	#else
+	#define XCHR16(addr,msk) __xch(msk,addr)
+	#endif
+
+	// Load and toggle
+	#ifdef __GNUC__
+	#define LATR16(addr,msk) \
+		__asm__ __volatile__ ( \
+		"ldi r16, %1" "\n\t" \
+		".dc.w 0x9307" "\n\t"\
+		::"z" (addr), "M" (msk):"r16")
+	#else
+	#define LATR16(addr,msk) __lat(msk,addr)
+	#endif
+
+	
 #endif
 
 /* Public Interface - May be used in end-application: */
