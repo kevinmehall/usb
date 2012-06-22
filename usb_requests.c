@@ -106,21 +106,7 @@ inline bool USB_handleSetConfiguration(USB_Request_Header_t* req){
 	else
 	  USB_DeviceState = (USB.ADDR) ? DEVICE_STATE_Configured : DEVICE_STATE_Powered;
 
-	EVENT_USB_Device_ConfigurationChanged();
-	return true;
-}
-
-inline bool USB_handleGetInterface(USB_Request_Header_t* req){
-	ep0_buf_in[0] = 0; // lie
-	USB_ep0_send(1);
-	return true;
-}
-
-inline bool USB_handleSetInterface(USB_Request_Header_t* req){
-	//uint8_t interface = req->wIndex;
-	//uint8_t altSetting = req->wValue;
-	
-	USB_ep0_send(0);
+	EVENT_USB_Device_ConfigurationChanged(USB_Device_ConfigurationNumber);
 	return true;
 }
 
@@ -149,9 +135,9 @@ bool USB_HandleSetup(void){
 			case REQ_SetConfiguration:
 				return USB_handleSetConfiguration(req);
 			case REQ_SetInterface:
-				return USB_handleSetInterface(req);
+				return EVENT_USB_Device_SetInterface(req->wIndex, req->wValue);
 			case REQ_GetInterface:
-				return USB_handleGetInterface(req);
+				return false;
 		}
 	}
 	

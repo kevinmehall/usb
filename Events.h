@@ -32,9 +32,13 @@ bool EVENT_USB_Device_ControlRequest(struct USB_Request_Header* req) ALIAS_DEFAU
 /** Event when OUT data is received as part of a control transfer. */
 void EVENT_USB_Device_ControlOUT(uint8_t* data, uint8_t len) ALIAS_DEFAULT;
 
-/** Event when the USB configuration is changed. Return true to accept the configuration, 
-    or false to return a STALL to the host. */
-bool EVENT_USB_Device_ConfigurationChanged(void) ALIAS_DEFAULT_BOOL;
+/** Event when the USB configuration is changed. The configuration is stored in
+    variable USB_Device_ConfigurationNumber */
+void EVENT_USB_Device_ConfigurationChanged(uint8_t config) ALIAS_DEFAULT;
+
+/** Event when an alternate setting for an interface is selected. Return true
+    to accept the alternate setting, or FALSE to send a STALL reply */
+bool EVENT_USB_Device_SetInterface(uint8_t interface, uint8_t altsetting) ALIAS_DEFAULT_BOOL;
 
 /** Event when the USB bus suspends */
 void EVENT_USB_Device_Suspend(void) ALIAS_DEFAULT;
