@@ -75,8 +75,6 @@ void USB_Task(){
 	uint8_t status = endpoints[0].out.STATUS;
 
 	if (status & USB_EP_SETUP_bm){
-		endpoints[0].out.CTRL |= USB_EP_TOGGLE_bm;
-		endpoints[0].in.CTRL |= USB_EP_TOGGLE_bm;
 		if (!USB_HandleSetup()){
 			endpoints[0].out.CTRL |= USB_EP_STALL_bm;
 			endpoints[0].in.CTRL |= USB_EP_STALL_bm; 
