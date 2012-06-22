@@ -5,25 +5,25 @@ inline void usb_pipe_reset(uint8_t ep, const Pipe* pipe){
 	pipe_reset(pipe);
 	USB_ep_cancel(ep);
 	
-	if (!(ep & USB_EP_IN)){ // OUT endpoint
-		USB_ep_out_start(ep, pipe_write_ptr(pipe));	
+	if (ep & USB_EP_IN){
+		pipe->data->count += 2;
+	}else{ // OUT endpoint
+		pipe->data->count -= 2;
 	}
 }
 
 inline void usb_pipe_handle(uint8_t ep, const Pipe* pipe){
 	if (ep & USB_EP_IN){
-		if (USB_ep_ready(ep) && pipe_can_read(pipe)){
-			if (USB_ep_done(ep)){
-				pipe_done_read(pipe);
-			}
-			USB_ep_in_start(ep, pipe_read_ptr(pipe), pipe->size);
+		if (USB_ep_ready(ep) && pipe_can_read(pipe) > 2){
+			const uint8_t bank = (ep&USB_EP_PP)?pipe->data->read_pos&1:0;
+			USB_ep_start_bank(ep, bank, pipe_read_ptr(pipe), pipe->size);
+			pipe_done_read(pipe);
 		}
 	}else{
-		if (USB_ep_ready(ep) && pipe_can_write(pipe)){
-			if (USB_ep_done(ep)){
-				pipe_done_write(pipe);
-			}
-			USB_ep_out_start(ep, pipe_write_ptr(pipe));
+		if (USB_ep_ready(ep) && pipe_can_write(pipe) > 2){
+			const uint8_t bank = (ep&USB_EP_PP)?pipe->data->write_pos&1:0;
+			USB_ep_start_bank(ep, bank, pipe_write_ptr(pipe), pipe->size);
+			pipe_done_write(pipe);
 		}
 	}
 }

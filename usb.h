@@ -26,9 +26,14 @@ typedef struct USB_Request_Header USB_Requst_Header_t;
 	#define EP0SIZE 64
 #endif
 
-typedef struct USB_EP_pair{
-	USB_EP_t out;
-	USB_EP_t in;
+typedef union USB_EP_pair{
+	union{
+		struct{
+			USB_EP_t out;
+			USB_EP_t in;
+		};
+		USB_EP_t ep[2];
+	};
 } ATTR_PACKED USB_EP_pair_t;
 
 extern uint8_t ep0_buf_in[USB_EP0SIZE];
@@ -102,6 +107,12 @@ extern USB_EP_pair_t endpoints[USB_MAXEP+1];
                                            USB_EP_BUFSIZE_1023_gc)
 
 #define USB_EP_IN 0x80
+
+// Flag in the endpoint address to indicate that the endpoint should use
+// PingPong (double buffer) mode. This is not actually part of the endpoint
+// address as seen by the host. If PP is enabled, this flag needs to be part
+// of the address passed to all USB_EP_* functions.
+#define USB_EP_PP 0x40
 	
 extern volatile uint8_t USB_DeviceState;
 extern volatile uint8_t USB_Device_ConfigurationNumber;
@@ -114,54 +125,88 @@ void USB_Init(void);
 void USB_ResetInterface(void);
 void USB_Task(void);
 
-#define USB_EP(epaddr) \
-	USB_EP_pair_t* pair = &endpoints[(epaddr & 0x7F)]; \
-	USB_EP_t* e = (epaddr&0x80)?&pair->in:&pair->out;
+#define _USB_EP(epaddr) \
+	USB_EP_pair_t* pair = &endpoints[(epaddr & 0x3F)]; \
+	USB_EP_t* e __attribute__ ((unused)) = &pair->ep[!!(epaddr&0x80)]; \
+	
+#define _USB_EP_OTHER(epaddr) \
+	USB_EP_t* other = &pair->ep[!(epaddr&0x80)]
+	
+#define _USB_EP_BANK(epaddr, bank) \
+	USB_EP_t* b = &pair->ep[!!(epaddr&0x80) != bank]
 
 inline void USB_ep_init(uint8_t ep, uint8_t type, uint16_t bufsize) ATTR_ALWAYS_INLINE;
 inline void USB_ep_init(uint8_t ep, uint8_t type, uint16_t bufsize){
-	USB_EP(ep);
-	e->STATUS = USB_EP_BUSNACK0_bm;
-	e->CTRL = type | USB_EP_size_to_gc(bufsize);
+	_USB_EP(ep);
+	if (ep & USB_EP_PP){
+		_USB_EP_OTHER(ep);
+		e->STATUS = USB_EP_BUSNACK0_bm | USB_EP_BUSNACK1_bm;
+		e->CTRL = type | USB_EP_size_to_gc(bufsize) | USB_EP_PINGPONG_bm;
+		other->CTRL = 0;
+		other->STATUS = USB_EP_BUSNACK0_bm;
+	}else{
+		e->STATUS = USB_EP_BUSNACK0_bm;
+		e->CTRL = type | USB_EP_size_to_gc(bufsize);
+	}
 }
 
 inline void USB_ep_cancel(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline void USB_ep_cancel(uint8_t ep){
-	USB_EP(ep);
-	e->STATUS |= USB_EP_BUSNACK0_bm;
-	//if (ep&0x80) e->STATUS |= USB_EP_TRNCOMPL0_bm
+	_USB_EP(ep);
+	if (ep & USB_EP_PP){
+		e->STATUS = (e->STATUS | USB_EP_BUSNACK0_bm | USB_EP_BUSNACK1_bm)&~USB_EP_BANK_bm;
+	}else{
+		e->STATUS |= USB_EP_BUSNACK0_bm;
+	}
+}
+
+inline void USB_ep_start_bank(uint8_t ep, uint8_t bank, uint8_t* addr, uint16_t size){
+	_USB_EP(ep);
+	_USB_EP_BANK(ep, bank);
+	b->DATAPTR = (unsigned) addr;
+	b->STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
+	if (ep & USB_EP_IN) b->CNT = size;
+	
+	//TODO: atomic RMW
+	e->STATUS &= ~(bank?USB_EP_BUSNACK1_bm:USB_EP_BUSNACK0_bm);
 }
 
 inline void USB_ep_out_start(uint8_t ep, uint8_t* addr) ATTR_ALWAYS_INLINE;
 inline void USB_ep_out_start(uint8_t ep, uint8_t* addr){
-	USB_EP(ep);
+	_USB_EP(ep);
 	e->DATAPTR = (unsigned) addr;
 	e->STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
 }
 
 inline void USB_ep_in_start(uint8_t ep, uint8_t* addr, uint16_t size) ATTR_ALWAYS_INLINE;
 inline void USB_ep_in_start(uint8_t ep, uint8_t* addr, uint16_t size){
-	USB_EP(ep);
+	_USB_EP(ep);
 	e->DATAPTR = (unsigned) addr;
 	e->CNT = size;
 	e->STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm | USB_EP_OVF_bm);
 }
 
+inline bool USB_ep_done_bank(uint8_t ep, uint8_t bank){
+	_USB_EP(ep);
+	_USB_EP_BANK(ep, bank);
+	return b->STATUS & USB_EP_TRNCOMPL0_bm;
+}
+
 inline bool USB_ep_done(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline bool USB_ep_done(uint8_t ep){
-	USB_EP(ep);
+	_USB_EP(ep);
 	return e->STATUS & USB_EP_TRNCOMPL0_bm;
 }
 
 inline bool USB_ep_ready(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline bool USB_ep_ready(uint8_t ep){
-	USB_EP(ep);
-	return e->STATUS & USB_EP_BUSNACK0_bm;
+	_USB_EP(ep);
+	return e->STATUS & (USB_EP_BUSNACK0_bm | USB_EP_BUSNACK1_bm);
 }
 
 inline uint16_t USB_ep_count(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline uint16_t USB_ep_count(uint8_t ep){
-	USB_EP(ep);
+	_USB_EP(ep);
 	return e->CNT;
 }
 
