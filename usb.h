@@ -123,6 +123,7 @@ void USB_ConfigureClock(void);
 /** Initialize USB functionality */
 void USB_Init(void);
 void USB_ResetInterface(void);
+void USB_Evt_Task(void);
 void USB_Task(void);
 
 #define _USB_EP(epaddr) \

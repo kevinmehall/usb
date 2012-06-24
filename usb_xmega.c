@@ -65,12 +65,14 @@ void USB_ep0_send_progmem(const uint8_t* addr, uint16_t size){
 	USB_ep0_send(size);
 }
 
-void USB_Task(){
+void USB_Evt_Task(){
 	if (USB.STATUS & USB_BUSRST_bm){
 		USB.STATUS &= ~USB_BUSRST_bm;
 		USB_Init();
 	}
-	
+}
+
+void USB_Task(){
 	// Read once to prevent race condition where SETUP packet is interpreted as OUT
 	uint8_t status = endpoints[0].out.STATUS;
 
