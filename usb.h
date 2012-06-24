@@ -266,12 +266,13 @@ static inline void USB_Attach(void)
 }
 
 static inline void USB_enter_bootloader(void){
+	cli();
 	USB_ep0_send(0);
 	USB_ep0_enableOut();
 	USB_ep_wait(0x00); // Wait for the status stage to complete
-	_delay_us(10000);
+	_delay_ms(10);
 	USB_Detach();
-	_delay_us(100000);
+	_delay_ms(100);
 	void (*enter_bootloader)(void) = (void*) 0x47fc /*0x8ff8/2*/;
 	enter_bootloader();
 }
