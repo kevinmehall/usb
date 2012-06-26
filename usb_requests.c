@@ -135,7 +135,10 @@ bool USB_HandleSetup(void){
 			case REQ_SetConfiguration:
 				return USB_handleSetConfiguration(req);
 			case REQ_SetInterface:
-				return EVENT_USB_Device_SetInterface(req->wIndex, req->wValue);
+				if (EVENT_USB_Device_SetInterface(req->wIndex, req->wValue)){
+					USB_ep0_send(0);
+					return true;
+				}
 			case REQ_GetInterface:
 				return false;
 		}
