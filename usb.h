@@ -203,6 +203,17 @@ inline bool USB_ep_done(uint8_t ep){
 	}
 }
 
+inline void USB_ep_clear_done(uint8_t ep) ATTR_ALWAYS_INLINE;
+inline void USB_ep_clear_done(uint8_t ep){
+	_USB_EP(ep);
+	if (ep & USB_EP_PP){
+		LACR16(&(e->STATUS), USB_EP_TRNCOMPL0_bm|USB_EP_TRNCOMPL1_bm);
+	}else{
+		// Because for ep0, TRNCOMPL1 is SETUP
+		LACR16(&(e->STATUS), USB_EP_TRNCOMPL0_bm);
+	}
+}
+
 inline bool USB_ep_ready(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline bool USB_ep_ready(uint8_t ep){
 	_USB_EP(ep);
