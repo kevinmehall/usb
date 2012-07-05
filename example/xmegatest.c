@@ -4,6 +4,7 @@
 //
 // Licensed under the terms of the GNU GPLv3+
 
+#include <avr/io.h>
 #include "xmegatest.h"
 
 unsigned int timer = 15625; // 500ms
@@ -12,18 +13,18 @@ unsigned char bulkdataout[64];
 
 
 void configureEndpoint(void){
-	USB_ep_in_init(1, USB_EP_TYPE_BULK_gc, 64);
-	USB_ep_in_start(1, bulkdatain, 64);
+	USB_ep_init(0x81, USB_EP_TYPE_BULK_gc, 64);
+	USB_ep_in_start(0x81, bulkdatain, 64);
 	
-	USB_ep_out_init(2, USB_EP_TYPE_BULK_gc, 64);
-	USB_ep_out_start(2, bulkdataout);
+	USB_ep_init(0x02, USB_EP_TYPE_BULK_gc, 64);
+	USB_ep_out_start(0x02, bulkdataout);
 }
 
 uint8_t outcntr = 0;
 
 void pollEndpoint(void){	
-	if (USB_ep_out_received(2)){
-		USB_ep_out_start(2, bulkdataout);
+	if (USB_ep_done(0x02)){
+		USB_ep_out_start(0x02, bulkdataout);
 		outcntr++;
 	}
 }
@@ -66,18 +67,12 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 			USB_ep0_send(4);
 			return true;
 		}else if (req->bRequest == 0x24){
-			USB_ep_out_init(2, USB_EP_TYPE_BULK_gc, 64);
-			USB_ep_out_start(2, bulkdataout);
+			USB_ep_init(0x02, USB_EP_TYPE_BULK_gc, 64);
+			USB_ep_out_start(0x02, bulkdataout);
 			outcntr = 0;
 			USB_ep0_send(0);
 		}else if (req->bRequest == 0xBB){
-			USB_ep0_send(0);
-			USB_ep0_wait_for_complete();
-			_delay_us(10000);
-			USB_Detach();
-			_delay_us(100000);
-			void (*enter_bootloader)(void) = 0x47fc /*0x8ff8/2*/;
-			enter_bootloader();
+			USB_enter_bootloader();
 		}
 	}
 	
