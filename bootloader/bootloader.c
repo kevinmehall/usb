@@ -210,14 +210,14 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 				USB_ep0_send(sizeof(uint32_t));
 				return true;
 			case REQ_RESET:
-				USB_ep0_send(0);
-				USB_ep_wait(0);
-				_delay_us(10000);
-				USB_Detach();
-				bootloaderflag = 0;
-				
 				cli();
-				_delay_us(100000); // 0.1s
+				USB_ep0_send(0);
+				USB_ep0_enableOut();
+				USB_ep_wait(0x80); // Wait for the status stage to complete
+				_delay_ms(10);
+				USB_Detach();
+				_delay_ms(100);
+				bootloaderflag = 0;
 				CCP = CCP_IOREG_gc;
 				RST.CTRL = RST_SWRST_bm;
 				while(1){};

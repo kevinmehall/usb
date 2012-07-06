@@ -5,8 +5,8 @@ CHECK_PORT=PORTR
 CHECK_PIN=0
 LED_PORT=PORTR
 LED_PIN=1
-HW_PRODUCT=XMEGA Bootloader
-HW_VERSION=1.0
+HW_PRODUCT=Unknown
+HW_VERSION=0
 FW_VERSION=$(shell git describe --always --dirty='*')
 
 CONFIG_FLAGS=-D HW_PRODUCT="$(HW_PRODUCT)" -D HW_VERSION="$(HW_VERSION)" \
@@ -242,12 +242,12 @@ LDFLAGS += -Wl,--section-start=.boot-entry=$(shell python -c "print hex($(BOOT_S
 # Type: avrdude -c ?
 # to get a full listing.
 #
-AVRDUDE_PROGRAMMER = dragon_pdi 
+AVRDUDE_PROGRAMMER = avrispmkii
 
 # com1 = serial port. Use lpt1 to connect to parallel port.
 AVRDUDE_PORT = usb
 
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
+AVRDUDE_WRITE_FLASH = -e -U boot:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
 
@@ -270,6 +270,8 @@ AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
 AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
 AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
 
+AVRDUDE_FLAGS += -U fuse2:w:0xBF:m
+#Bootloader fuse. To undo, -U fuse2:w:0xFF:m
 
 #============================================================================
 
@@ -365,15 +367,13 @@ sizeafter:
 program: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
-update: $(TARGET).hex
-	python update.py $(TARGET).hex
-
+REPOSITION_BOOTLOADER += --change-addresses -$(BOOT_SECTION_START)
 
 # Create final output files (.hex, .eep) from ELF output file.
 %.hex: %.elf
 	@echo
 	@echo $(MSG_FLASH) $@
-	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse -R .lock $< $@
+	$(OBJCOPY) $(REPOSITION_BOOTLOADER) -O $(FORMAT) -R .eeprom -R .fuse -R .lock $< $@
 
 %.eep: %.elf
 	@echo
@@ -476,12 +476,6 @@ $(shell mkdir $(OBJDIR) 2>/dev/null)
 
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
-
-bootload_only:
-	make -Cusb/bootloader HW_PRODUCT="$(HW_PRODUCT)" HW_VERSION="$(HW_VERSION)" program
-	sleep 0.5
-	
-bootload: bootload_only update
 
 # Listing of phony targets.
 .PHONY : all begin finish end sizebefore sizeafter gccversion \
