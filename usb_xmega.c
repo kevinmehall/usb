@@ -65,30 +65,6 @@ void USB_ep0_send_progmem(const uint8_t* addr, uint16_t size){
 	USB_ep0_send(size);
 }
 
-void USB_Evt_Task(){
-	if (USB.STATUS & USB_BUSRST_bm){
-		USB.STATUS &= ~USB_BUSRST_bm;
-		USB_Init();
-	}
-}
-
-void USB_Task(){
-	// Read once to prevent race condition where SETUP packet is interpreted as OUT
-	uint8_t status = endpoints[0].out.STATUS;
-
-	if (status & USB_EP_SETUP_bm){
-		if (!USB_HandleSetup()){
-			endpoints[0].out.CTRL |= USB_EP_STALL_bm;
-			endpoints[0].in.CTRL |= USB_EP_STALL_bm; 
-		}
-		USB_ep0_enableOut();
-	}else if(status & USB_EP_TRNCOMPL0_bm){
-		EVENT_USB_Device_ControlOUT((uint8_t *) ep0_buf_out, endpoints[0].out.CNT);
-		USB_ep0_enableOut();
-	}
-}
-
-
 void USB_ConfigureClock(){
 	// Configure DFLL for 48MHz, calibrated by USB SOF
 	OSC.DFLLCTRL = OSC_RC32MCREF_USBSOF_gc;
