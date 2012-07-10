@@ -209,11 +209,16 @@
 	    From http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=121033
 	 */
 	#define GCC_FORCE_ALIGN_2  __attribute__((section (".data,\"aw\",@progbits\n.p2align 1;")))
+
+	#define likely(x) __builtin_expect((x),1)
+	#define unlikely(x) __builtin_expect((x),0)
 #else
 	#define GCC_FORCE_POINTER_ACCESS(StructPtr)
 	#define GCC_MEMORY_BARRIER()
 	#define GCC_IS_COMPILE_CONST(x)               0
 	#define GCC_FORCE_ALIGN_2
+	#define likely(x) x
+	#define unlikely(x) x
 #endif
 
 
