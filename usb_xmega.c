@@ -70,7 +70,7 @@ void USB_ConfigureClock(){
 	OSC.DFLLCTRL = OSC_RC32MCREF_USBSOF_gc;
 	NVM.CMD  = NVM_CMD_READ_CALIB_ROW_gc;
 	DFLLRC32M.CALB = pgm_read_byte(offsetof(NVM_PROD_SIGNATURES_t, USBRCOSC));
-	DFLLRC32M.COMP1 = 0x1B; //Xmega AU manual, p41
+	DFLLRC32M.COMP1 = 0x1B; //Xmega AU manual, 4.17.19
 	DFLLRC32M.COMP2 = 0xB7;
 	DFLLRC32M.CTRL = DFLL_ENABLE_bm;
 	
@@ -86,6 +86,8 @@ void USB_ConfigureClock(){
     
     while(!(OSC.STATUS & OSC_PLLRDY_bm)); // wait for PLL ready
     
+    DFLLRC2M.CTRL = DFLL_ENABLE_bm;
+
     CCP = CCP_IOREG_gc; //Security Signature to modify clock 
     CLK.CTRL = CLK_SCLKSEL_PLL_gc; // Select PLL
     CLK.PSCTRL = 0x00; // No peripheral clock prescaler
