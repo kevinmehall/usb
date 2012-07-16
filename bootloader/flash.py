@@ -150,6 +150,19 @@ class Bootloader(object):
 		else:
 			self.write_hex_file(sys.argv[1])
 
+def enterBootloader(vid, pid):
+	device = usb.core.find(idVendor=vid, idProduct=pid)
+	if not device:
+		print "Device not found in app mode"
+	else:
+		device.ctrl_transfer(0x40|0x80, 0xBB, 0, 0, 1)
+		time.sleep(1.5)
+
 if __name__ == "__main__":
-	b = Bootloader()
-	b.handle_args(sys.argv)
+	if len(sys.argv) == 4 and sys.argv[1] == 'enter':
+		vid = int(sys.argv[2], 16)
+		pid = int(sys.argv[3], 16)
+		enterBootloader(vid, pid)
+	else:
+		b = Bootloader()
+		b.handle_args(sys.argv)
