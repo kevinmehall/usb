@@ -152,7 +152,9 @@ class Bootloader(object):
 
 def enterBootloader(vid, pid):
 	device = usb.core.find(idVendor=vid, idProduct=pid)
-	if not device:
+	if usb.core.find(idVendor=VID, idProduct=PID):
+		pass	
+	elif not device:
 		print "Device not found in app mode"
 	else:
 		device.ctrl_transfer(0x40|0x80, 0xBB, 0, 0, 1)
