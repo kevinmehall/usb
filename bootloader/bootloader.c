@@ -110,19 +110,20 @@ void runBootloader(void){
 	USB_ep_init(1, USB_EP_TYPE_BULK_gc, EP1_SIZE);
 	sei();
 	
-	uint16_t i=0;
+	uint32_t i=0;
 	
 	while (1){
 		USB_Task();
 		pollEndpoint();
 		
-		if (++i == 0) LED_PORT.OUTTGL = (1 << LED_PIN);
+		if ((++i & 0x1ffff) == 0) LED_PORT.OUTTGL = (1 << LED_PIN);
 	}
 }
 
 #define BOOTLOADER_MAGIC 0x9090BB01
 uint32_t bootloaderflag __attribute__ ((section (".noinit"))); 
 
+void reset_into_bootloader(void) ATTR_NO_INLINE;
 void reset_into_bootloader(void){
 	PMIC.CTRL = 0;
 	bootloaderflag = BOOTLOADER_MAGIC;
