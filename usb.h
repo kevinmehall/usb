@@ -240,6 +240,25 @@ inline void USB_ep_wait(uint8_t ep){
 	while (!USB_ep_done(ep)){};
 }
 
+/// Select a certain bank of an endpoint for the next transfer
+inline void USB_ep_set_bank(uint8_t ep, uint8_t bank) ATTR_ALWAYS_INLINE;
+inline void USB_ep_set_bank(uint8_t ep, uint8_t bank){
+	_USB_EP(ep);
+	if (bank){
+		LASR16(&(e->STATUS), USB_EP_BANK_bm);
+	}else{
+		LACR16(&(e->STATUS), USB_EP_BANK_bm);
+	}
+}
+
+/// Get the bank 0/1 which will handle the next request on this endpoint
+inline uint8_t USB_ep_get_bank(uint8_t ep) ATTR_ALWAYS_INLINE;
+inline uint8_t USB_ep_get_bank(uint8_t ep){
+	_USB_EP(ep);
+	return !!(e->STATUS & USB_EP_BANK_bm);
+}
+
+
 // Enable the OUT stage on the default control pipe. This happens automatically
 // upon the return of HandleSetup, but use this function if it needs to happen
 // before returning (e.g. with USB_ep_wait()).
