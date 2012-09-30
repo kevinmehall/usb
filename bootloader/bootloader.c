@@ -107,23 +107,24 @@ void runBootloader(void){
 	_delay_us(100000); // 0.1s
 		
 	USB_Init();
-	USB_ep_out_init(1, USB_EP_TYPE_BULK_gc, EP1_SIZE);
+	USB_ep_init(1, USB_EP_TYPE_BULK_gc, EP1_SIZE);
 	sei();
 	
-	uint16_t i=0;
+	uint32_t i=0;
 	
 	while (1){
 		USB_Task();
 		pollEndpoint();
 		
-		if (++i == 0) LED_PORT.OUTTGL = (1 << LED_PIN);
+		if ((++i & 0x1ffff) == 0) LED_PORT.OUTTGL = (1 << LED_PIN);
 	}
 }
 
 #define BOOTLOADER_MAGIC 0x9090BB01
 uint32_t bootloaderflag __attribute__ ((section (".noinit"))); 
 
-void reset_into_bootloader(){
+void reset_into_bootloader(void) ATTR_NO_INLINE;
+void reset_into_bootloader(void){
 	PMIC.CTRL = 0;
 	bootloaderflag = BOOTLOADER_MAGIC;
     CCP = CCP_IOREG_gc;
@@ -210,14 +211,14 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 				USB_ep0_send(sizeof(uint32_t));
 				return true;
 			case REQ_RESET:
-				USB_ep0_send(0);
-				USB_ep0_wait_for_complete();
-				_delay_us(10000);
-				USB_Detach();
-				bootloaderflag = 0;
-				
 				cli();
-				_delay_us(100000); // 0.1s
+				USB_ep0_send(0);
+				USB_ep0_enableOut();
+				USB_ep_wait(0x80); // Wait for the status stage to complete
+				_delay_ms(10);
+				USB_Detach();
+				_delay_ms(100);
+				bootloaderflag = 0;
 				CCP = CCP_IOREG_gc;
 				RST.CTRL = RST_SWRST_bm;
 				while(1){};
@@ -231,7 +232,7 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 
 
 void pollEndpoint(void){
-	if (USB_ep_out_received(1)){		
+	if (USB_ep_done(1)){		
 		
 		pageOffs += EP1_SIZE;
 

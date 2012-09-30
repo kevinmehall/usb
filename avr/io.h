@@ -29,7 +29,7 @@
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE. */
 
-/* $Id: io.h,v 1.52.2.28 2009/12/20 17:02:53 arcanum Exp $ */
+/* $Id: io.h 2211 2011-02-14 14:04:25Z aboyapati $ */
 
 /** \file */
 /** \defgroup avr_io <avr/io.h>: AVR device-specific IO definitions
@@ -98,7 +98,31 @@
 
 #include <avr/sfr_defs.h>
 
-#include "iox32a4u.h"
+#if defined (__AVR_ATxmega32A4U__)
+#  include <avr/iox32a4u.h>
+#elif defined (__AVR_ATxmega64A1U__)
+#  include <avr/iox64a1u.h>
+#elif defined (__AVR_ATxmega64A3U__)
+#  include <avr/iox64a3u.h>
+#elif defined (__AVR_ATxmega64A4U__)
+#  include <avr/iox64a4u.h>
+#elif defined (__AVR_ATxmega128A1U__)
+#  include <avr/iox128a1u.h>
+#elif defined (__AVR_ATxmega128A4U__)
+#  include <avr/iox128a4u.h>
+#elif defined (__AVR_ATxmega128A3U__)
+#  include <avr/iox128a3u.h>
+#elif defined (__AVR_ATxmega192A3U__)
+#  include <avr/iox192a3u.h>
+#elif defined (__AVR_ATxmega256A3U__)
+#  include <avr/iox256a3u.h>
+#elif defined (__AVR_ATxmega256A3BU__)
+#  include <avr/iox256a3bu.h>
+#else
+#  if !defined(__COMPILING_AVR_LIBC__)
+#    warning "device type not defined"
+#  endif
+#endif
 
 #include <avr/portpins.h>
 

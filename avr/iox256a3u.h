@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * Copyright (C) 2011 Atmel Corporation
+ * Copyright (C) 2012 Atmel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,13 @@
 #endif
 
 #ifndef _AVR_IOXXX_H_
-#  define _AVR_IOXXX_H_ "iox32a4u.h"
+#  define _AVR_IOXXX_H_ "iox256a3u.h"
 #else
 #  error "Attempt to include more than one <avr/ioXXX.h> file."
 #endif
 
-#ifndef _AVR_ATXMEGA32A4U_H_INCLUDED
-#define _AVR_ATXMEGA32A4U_H_INCLUDED
+#ifndef _AVR_ATXMEGA256A3U_H_INCLUDED
+#define _AVR_ATXMEGA256A3U_H_INCLUDED
 
 /* Ungrouped common registers */
 #define GPIOR0  _SFR_MEM8(0x0000)  /* General Purpose IO Register 0 */
@@ -198,6 +198,7 @@ typedef struct CLK_struct
     register8_t RTCCTRL;  /* RTC Control Register */
     register8_t USBCTRL;  /* USB Control Register */
 } CLK_t;
+
 
 /* Power Reduction */
 typedef struct PR_struct
@@ -375,6 +376,7 @@ typedef struct DFLL_struct
     register8_t COMP0;  /* Oscillator Compare Register 0 */
     register8_t COMP1;  /* Oscillator Compare Register 1 */
     register8_t COMP2;  /* Oscillator Compare Register 2 */
+    register8_t reserved_0x07;
 } DFLL_t;
 
 
@@ -458,6 +460,8 @@ typedef struct MCU_struct
     register8_t ANAINIT;  /* Analog Startup Delay */
     register8_t EVSYSLOCK;  /* Event System Lock */
     register8_t AWEXLOCK;  /* AWEX Lock */
+    register8_t reserved_0x0A;
+    register8_t reserved_0x0B;
 } MCU_t;
 
 
@@ -672,7 +676,9 @@ typedef struct DMA_CH_struct
     register8_t DESTADDR0;  /* Channel Destination Address 0 */
     register8_t DESTADDR1;  /* Channel Destination Address 1 */
     register8_t DESTADDR2;  /* Channel Destination Address 2 */
+    register8_t reserved_0x0F;
 } DMA_CH_t;
+
 
 /* DMA Controller */
 typedef struct DMA_struct
@@ -1176,8 +1182,9 @@ typedef struct ADC_CH_struct
     register8_t INTFLAGS;  /* Interrupt Flags */
     _WORDREGISTER(RES);  /* Channel Result */
     register8_t SCAN;  /* Input Channel Scan */
-	 register8_t reserved_0x07;         /*Modified from Original file for a quick fix/patch */
+    register8_t reserved_0x07;
 } ADC_CH_t;
+
 
 /* Analog-to-Digital Converter */
 typedef struct ADC_struct
@@ -1579,7 +1586,7 @@ typedef enum AC_WSTATE_enum
 
 /*
 --------------------------------------------------------------------------
-RTC - Real-Time Clounter
+RTC - Real-Time Counter
 --------------------------------------------------------------------------
 */
 
@@ -1649,6 +1656,7 @@ typedef struct TWI_MASTER_struct
     register8_t DATA;  /* Data Register */
 } TWI_MASTER_t;
 
+
 /*  */
 typedef struct TWI_SLAVE_struct
 {
@@ -1659,6 +1667,7 @@ typedef struct TWI_SLAVE_struct
     register8_t DATA;  /* Data Register */
     register8_t ADDRMASK;  /* Address Mask Register */
 } TWI_SLAVE_t;
+
 
 /* Two-Wire Interface */
 typedef struct TWI_struct
@@ -1747,6 +1756,7 @@ typedef struct USB_EP_struct
     _WORDREGISTER(AUXDATA);  /* Auxiliary Data */
 } USB_EP_t;
 
+
 /* Universal Serial Bus */
 typedef struct USB_struct
 {
@@ -1811,283 +1821,10 @@ typedef struct USB_struct
     register8_t CAL1;  /* Calibration Byte 1 */
 } USB_t;
 
+
 /* USB Endpoint Table */
 typedef struct USB_EP_TABLE_struct
 {
-    register8_t reserved_0x00;
-    register8_t reserved_0x01;
-    register8_t reserved_0x02;
-    register8_t reserved_0x03;
-    register8_t reserved_0x04;
-    register8_t reserved_0x05;
-    register8_t reserved_0x06;
-    register8_t reserved_0x07;
-    register8_t reserved_0x08;
-    register8_t reserved_0x09;
-    register8_t reserved_0x0A;
-    register8_t reserved_0x0B;
-    register8_t reserved_0x0C;
-    register8_t reserved_0x0D;
-    register8_t reserved_0x0E;
-    register8_t reserved_0x0F;
-    register8_t reserved_0x10;
-    register8_t reserved_0x11;
-    register8_t reserved_0x12;
-    register8_t reserved_0x13;
-    register8_t reserved_0x14;
-    register8_t reserved_0x15;
-    register8_t reserved_0x16;
-    register8_t reserved_0x17;
-    register8_t reserved_0x18;
-    register8_t reserved_0x19;
-    register8_t reserved_0x1A;
-    register8_t reserved_0x1B;
-    register8_t reserved_0x1C;
-    register8_t reserved_0x1D;
-    register8_t reserved_0x1E;
-    register8_t reserved_0x1F;
-    register8_t reserved_0x20;
-    register8_t reserved_0x21;
-    register8_t reserved_0x22;
-    register8_t reserved_0x23;
-    register8_t reserved_0x24;
-    register8_t reserved_0x25;
-    register8_t reserved_0x26;
-    register8_t reserved_0x27;
-    register8_t reserved_0x28;
-    register8_t reserved_0x29;
-    register8_t reserved_0x2A;
-    register8_t reserved_0x2B;
-    register8_t reserved_0x2C;
-    register8_t reserved_0x2D;
-    register8_t reserved_0x2E;
-    register8_t reserved_0x2F;
-    register8_t reserved_0x30;
-    register8_t reserved_0x31;
-    register8_t reserved_0x32;
-    register8_t reserved_0x33;
-    register8_t reserved_0x34;
-    register8_t reserved_0x35;
-    register8_t reserved_0x36;
-    register8_t reserved_0x37;
-    register8_t reserved_0x38;
-    register8_t reserved_0x39;
-    register8_t reserved_0x3A;
-    register8_t reserved_0x3B;
-    register8_t reserved_0x3C;
-    register8_t reserved_0x3D;
-    register8_t reserved_0x3E;
-    register8_t reserved_0x3F;
-    register8_t reserved_0x40;
-    register8_t reserved_0x41;
-    register8_t reserved_0x42;
-    register8_t reserved_0x43;
-    register8_t reserved_0x44;
-    register8_t reserved_0x45;
-    register8_t reserved_0x46;
-    register8_t reserved_0x47;
-    register8_t reserved_0x48;
-    register8_t reserved_0x49;
-    register8_t reserved_0x4A;
-    register8_t reserved_0x4B;
-    register8_t reserved_0x4C;
-    register8_t reserved_0x4D;
-    register8_t reserved_0x4E;
-    register8_t reserved_0x4F;
-    register8_t reserved_0x50;
-    register8_t reserved_0x51;
-    register8_t reserved_0x52;
-    register8_t reserved_0x53;
-    register8_t reserved_0x54;
-    register8_t reserved_0x55;
-    register8_t reserved_0x56;
-    register8_t reserved_0x57;
-    register8_t reserved_0x58;
-    register8_t reserved_0x59;
-    register8_t reserved_0x5A;
-    register8_t reserved_0x5B;
-    register8_t reserved_0x5C;
-    register8_t reserved_0x5D;
-    register8_t reserved_0x5E;
-    register8_t reserved_0x5F;
-    register8_t reserved_0x60;
-    register8_t reserved_0x61;
-    register8_t reserved_0x62;
-    register8_t reserved_0x63;
-    register8_t reserved_0x64;
-    register8_t reserved_0x65;
-    register8_t reserved_0x66;
-    register8_t reserved_0x67;
-    register8_t reserved_0x68;
-    register8_t reserved_0x69;
-    register8_t reserved_0x6A;
-    register8_t reserved_0x6B;
-    register8_t reserved_0x6C;
-    register8_t reserved_0x6D;
-    register8_t reserved_0x6E;
-    register8_t reserved_0x6F;
-    register8_t reserved_0x70;
-    register8_t reserved_0x71;
-    register8_t reserved_0x72;
-    register8_t reserved_0x73;
-    register8_t reserved_0x74;
-    register8_t reserved_0x75;
-    register8_t reserved_0x76;
-    register8_t reserved_0x77;
-    register8_t reserved_0x78;
-    register8_t reserved_0x79;
-    register8_t reserved_0x7A;
-    register8_t reserved_0x7B;
-    register8_t reserved_0x7C;
-    register8_t reserved_0x7D;
-    register8_t reserved_0x7E;
-    register8_t reserved_0x7F;
-    register8_t reserved_0x80;
-    register8_t reserved_0x81;
-    register8_t reserved_0x82;
-    register8_t reserved_0x83;
-    register8_t reserved_0x84;
-    register8_t reserved_0x85;
-    register8_t reserved_0x86;
-    register8_t reserved_0x87;
-    register8_t reserved_0x88;
-    register8_t reserved_0x89;
-    register8_t reserved_0x8A;
-    register8_t reserved_0x8B;
-    register8_t reserved_0x8C;
-    register8_t reserved_0x8D;
-    register8_t reserved_0x8E;
-    register8_t reserved_0x8F;
-    register8_t reserved_0x90;
-    register8_t reserved_0x91;
-    register8_t reserved_0x92;
-    register8_t reserved_0x93;
-    register8_t reserved_0x94;
-    register8_t reserved_0x95;
-    register8_t reserved_0x96;
-    register8_t reserved_0x97;
-    register8_t reserved_0x98;
-    register8_t reserved_0x99;
-    register8_t reserved_0x9A;
-    register8_t reserved_0x9B;
-    register8_t reserved_0x9C;
-    register8_t reserved_0x9D;
-    register8_t reserved_0x9E;
-    register8_t reserved_0x9F;
-    register8_t reserved_0xA0;
-    register8_t reserved_0xA1;
-    register8_t reserved_0xA2;
-    register8_t reserved_0xA3;
-    register8_t reserved_0xA4;
-    register8_t reserved_0xA5;
-    register8_t reserved_0xA6;
-    register8_t reserved_0xA7;
-    register8_t reserved_0xA8;
-    register8_t reserved_0xA9;
-    register8_t reserved_0xAA;
-    register8_t reserved_0xAB;
-    register8_t reserved_0xAC;
-    register8_t reserved_0xAD;
-    register8_t reserved_0xAE;
-    register8_t reserved_0xAF;
-    register8_t reserved_0xB0;
-    register8_t reserved_0xB1;
-    register8_t reserved_0xB2;
-    register8_t reserved_0xB3;
-    register8_t reserved_0xB4;
-    register8_t reserved_0xB5;
-    register8_t reserved_0xB6;
-    register8_t reserved_0xB7;
-    register8_t reserved_0xB8;
-    register8_t reserved_0xB9;
-    register8_t reserved_0xBA;
-    register8_t reserved_0xBB;
-    register8_t reserved_0xBC;
-    register8_t reserved_0xBD;
-    register8_t reserved_0xBE;
-    register8_t reserved_0xBF;
-    register8_t reserved_0xC0;
-    register8_t reserved_0xC1;
-    register8_t reserved_0xC2;
-    register8_t reserved_0xC3;
-    register8_t reserved_0xC4;
-    register8_t reserved_0xC5;
-    register8_t reserved_0xC6;
-    register8_t reserved_0xC7;
-    register8_t reserved_0xC8;
-    register8_t reserved_0xC9;
-    register8_t reserved_0xCA;
-    register8_t reserved_0xCB;
-    register8_t reserved_0xCC;
-    register8_t reserved_0xCD;
-    register8_t reserved_0xCE;
-    register8_t reserved_0xCF;
-    register8_t reserved_0xD0;
-    register8_t reserved_0xD1;
-    register8_t reserved_0xD2;
-    register8_t reserved_0xD3;
-    register8_t reserved_0xD4;
-    register8_t reserved_0xD5;
-    register8_t reserved_0xD6;
-    register8_t reserved_0xD7;
-    register8_t reserved_0xD8;
-    register8_t reserved_0xD9;
-    register8_t reserved_0xDA;
-    register8_t reserved_0xDB;
-    register8_t reserved_0xDC;
-    register8_t reserved_0xDD;
-    register8_t reserved_0xDE;
-    register8_t reserved_0xDF;
-    register8_t reserved_0xE0;
-    register8_t reserved_0xE1;
-    register8_t reserved_0xE2;
-    register8_t reserved_0xE3;
-    register8_t reserved_0xE4;
-    register8_t reserved_0xE5;
-    register8_t reserved_0xE6;
-    register8_t reserved_0xE7;
-    register8_t reserved_0xE8;
-    register8_t reserved_0xE9;
-    register8_t reserved_0xEA;
-    register8_t reserved_0xEB;
-    register8_t reserved_0xEC;
-    register8_t reserved_0xED;
-    register8_t reserved_0xEE;
-    register8_t reserved_0xEF;
-    register8_t reserved_0xF0;
-    register8_t reserved_0xF1;
-    register8_t reserved_0xF2;
-    register8_t reserved_0xF3;
-    register8_t reserved_0xF4;
-    register8_t reserved_0xF5;
-    register8_t reserved_0xF6;
-    register8_t reserved_0xF7;
-    register8_t reserved_0xF8;
-    register8_t reserved_0xF9;
-    register8_t reserved_0xFA;
-    register8_t reserved_0xFB;
-    register8_t reserved_0xFC;
-    register8_t reserved_0xFD;
-    register8_t reserved_0xFE;
-    register8_t reserved_0xFF;
-    register8_t reserved_0x100;
-    register8_t reserved_0x101;
-    register8_t reserved_0x102;
-    register8_t reserved_0x103;
-    register8_t reserved_0x104;
-    register8_t reserved_0x105;
-    register8_t reserved_0x106;
-    register8_t reserved_0x107;
-    register8_t reserved_0x108;
-    register8_t reserved_0x109;
-    register8_t reserved_0x10A;
-    register8_t reserved_0x10B;
-    register8_t reserved_0x10C;
-    register8_t reserved_0x10D;
-    register8_t reserved_0x10E;
-    register8_t reserved_0x10F;
-    register8_t FRAMENUML;  /* Frame Number Low Byte */
-    register8_t FRAMENUMH;  /* Frame Number High Byte */
     USB_EP_t EP0OUT;  /* Endpoint 0 */
     USB_EP_t EP0IN;  /* Endpoint 0 */
     USB_EP_t EP1OUT;  /* Endpoint 1 */
@@ -2120,6 +1857,24 @@ typedef struct USB_EP_TABLE_struct
     USB_EP_t EP14IN;  /* Endpoint 14 */
     USB_EP_t EP15OUT;  /* Endpoint 15 */
     USB_EP_t EP15IN;  /* Endpoint 15 */
+    register8_t reserved_0x100;
+    register8_t reserved_0x101;
+    register8_t reserved_0x102;
+    register8_t reserved_0x103;
+    register8_t reserved_0x104;
+    register8_t reserved_0x105;
+    register8_t reserved_0x106;
+    register8_t reserved_0x107;
+    register8_t reserved_0x108;
+    register8_t reserved_0x109;
+    register8_t reserved_0x10A;
+    register8_t reserved_0x10B;
+    register8_t reserved_0x10C;
+    register8_t reserved_0x10D;
+    register8_t reserved_0x10E;
+    register8_t reserved_0x10F;
+    register8_t FRAMENUML;  /* Frame Number Low Byte */
+    register8_t FRAMENUMH;  /* Frame Number High Byte */
 } USB_EP_TABLE_t;
 
 /* Interrupt level */
@@ -2294,6 +2049,7 @@ typedef struct TC0_struct
     _WORDREGISTER(CCCBUF);  /* Compare Or Capture C Buffer */
     _WORDREGISTER(CCDBUF);  /* Compare Or Capture D Buffer */
 } TC0_t;
+
 
 /* 16-bit Timer/Counter 1 */
 typedef struct TC1_struct
@@ -2859,10 +2615,11 @@ typedef struct NVM_LOCKBITS_struct
     register8_t LOCKBITS;  /* Lock Bits */
 } NVM_LOCKBITS_t;
 
+
 /* Fuses */
 typedef struct NVM_FUSES_struct
 {
-    register8_t reserved_0x00;
+    register8_t FUSEBYTE0;  /* JTAG User ID */
     register8_t FUSEBYTE1;  /* Watchdog Configuration */
     register8_t FUSEBYTE2;  /* Reset Configuration */
     register8_t reserved_0x03;
@@ -3030,6 +2787,22 @@ typedef struct NVM_PROD_SIGNATURES_struct
     register8_t DACA1GAINCAL;  /* DACA1 Calibration Byte 1 */
     register8_t DACB1OFFCAL;  /* DACB1 Calibration Byte 0 */
     register8_t DACB1GAINCAL;  /* DACB1 Calibration Byte 1 */
+    register8_t reserved_0x38;
+    register8_t reserved_0x39;
+    register8_t reserved_0x3A;
+    register8_t reserved_0x3B;
+    register8_t reserved_0x3C;
+    register8_t reserved_0x3D;
+    register8_t reserved_0x3E;
+    register8_t reserved_0x3F;
+    register8_t reserved_0x40;
+    register8_t reserved_0x41;
+    register8_t reserved_0x42;
+    register8_t reserved_0x43;
+    register8_t reserved_0x44;
+    register8_t reserved_0x45;
+    register8_t reserved_0x46;
+    register8_t reserved_0x47;
 } NVM_PROD_SIGNATURES_t;
 
 /*
@@ -3060,8 +2833,10 @@ IO Module Instances. Mapped to memory.
 #define EVSYS    (*(EVSYS_t *) 0x0180)  /* Event System */
 #define NVM    (*(NVM_t *) 0x01C0)  /* Non-volatile Memory Controller */
 #define ADCA    (*(ADC_t *) 0x0200)  /* Analog-to-Digital Converter */
+#define ADCB    (*(ADC_t *) 0x0240)  /* Analog-to-Digital Converter */
 #define DACB    (*(DAC_t *) 0x0320)  /* Digital-to-Analog Converter */
 #define ACA    (*(AC_t *) 0x0380)  /* Analog Comparator */
+#define ACB    (*(AC_t *) 0x0390)  /* Analog Comparator */
 #define RTC    (*(RTC_t *) 0x0400)  /* Real-Time Counter */
 #define TWIC    (*(TWI_t *) 0x0480)  /* Two-Wire Interface */
 #define TWIE    (*(TWI_t *) 0x04A0)  /* Two-Wire Interface */
@@ -3071,6 +2846,7 @@ IO Module Instances. Mapped to memory.
 #define PORTC    (*(PORT_t *) 0x0640)  /* I/O Ports */
 #define PORTD    (*(PORT_t *) 0x0660)  /* I/O Ports */
 #define PORTE    (*(PORT_t *) 0x0680)  /* I/O Ports */
+#define PORTF    (*(PORT_t *) 0x06A0)  /* I/O Ports */
 #define PORTR    (*(PORT_t *) 0x07E0)  /* I/O Ports */
 #define TCC0    (*(TC0_t *) 0x0800)  /* 16-bit Timer/Counter 0 */
 #define TCC2    (*(TC2_t *) 0x0800)  /* 16-bit Timer/Counter type 2 */
@@ -3089,8 +2865,17 @@ IO Module Instances. Mapped to memory.
 #define USARTD1    (*(USART_t *) 0x09B0)  /* Universal Synchronous/Asynchronous Receiver/Transmitter */
 #define SPID    (*(SPI_t *) 0x09C0)  /* Serial Peripheral Interface */
 #define TCE0    (*(TC0_t *) 0x0A00)  /* 16-bit Timer/Counter 0 */
+#define TCE2    (*(TC2_t *) 0x0A00)  /* 16-bit Timer/Counter type 2 */
+#define TCE1    (*(TC1_t *) 0x0A40)  /* 16-bit Timer/Counter 1 */
+#define AWEXE    (*(AWEX_t *) 0x0A80)  /* Advanced Waveform Extension */
 #define HIRESE    (*(HIRES_t *) 0x0A90)  /* High-Resolution Extension */
 #define USARTE0    (*(USART_t *) 0x0AA0)  /* Universal Synchronous/Asynchronous Receiver/Transmitter */
+#define USARTE1    (*(USART_t *) 0x0AB0)  /* Universal Synchronous/Asynchronous Receiver/Transmitter */
+#define SPIE    (*(SPI_t *) 0x0AC0)  /* Serial Peripheral Interface */
+#define TCF0    (*(TC0_t *) 0x0B00)  /* 16-bit Timer/Counter 0 */
+#define TCF2    (*(TC2_t *) 0x0B00)  /* 16-bit Timer/Counter type 2 */
+#define HIRESF    (*(HIRES_t *) 0x0B90)  /* High-Resolution Extension */
+#define USARTF0    (*(USART_t *) 0x0BA0)  /* Universal Synchronous/Asynchronous Receiver/Transmitter */
 
 
 #endif /* !defined (__ASSEMBLER__) */
@@ -3133,6 +2918,52 @@ IO Module Instances. Mapped to memory.
 #define GPIO_GPIOD  _SFR_MEM8(0x000D)
 #define GPIO_GPIOE  _SFR_MEM8(0x000E)
 #define GPIO_GPIOF  _SFR_MEM8(0x000F)
+
+/* NVM_FUSES - Fuses */
+#define FUSE_FUSEBYTE0  _SFR_MEM8(0x0000)
+#define FUSE_FUSEBYTE1  _SFR_MEM8(0x0001)
+#define FUSE_FUSEBYTE2  _SFR_MEM8(0x0002)
+#define FUSE_FUSEBYTE4  _SFR_MEM8(0x0004)
+#define FUSE_FUSEBYTE5  _SFR_MEM8(0x0005)
+
+/* NVM_LOCKBITS - Lock Bits */
+#define LOCKBIT_LOCKBITS  _SFR_MEM8(0x0000)
+
+/* NVM_PROD_SIGNATURES - Production Signatures */
+#define PRODSIGNATURES_RCOSC2M  _SFR_MEM8(0x0000)
+#define PRODSIGNATURES_RCOSC2MA  _SFR_MEM8(0x0001)
+#define PRODSIGNATURES_RCOSC32K  _SFR_MEM8(0x0002)
+#define PRODSIGNATURES_RCOSC32M  _SFR_MEM8(0x0003)
+#define PRODSIGNATURES_RCOSC32MA  _SFR_MEM8(0x0004)
+#define PRODSIGNATURES_LOTNUM0  _SFR_MEM8(0x0008)
+#define PRODSIGNATURES_LOTNUM1  _SFR_MEM8(0x0009)
+#define PRODSIGNATURES_LOTNUM2  _SFR_MEM8(0x000A)
+#define PRODSIGNATURES_LOTNUM3  _SFR_MEM8(0x000B)
+#define PRODSIGNATURES_LOTNUM4  _SFR_MEM8(0x000C)
+#define PRODSIGNATURES_LOTNUM5  _SFR_MEM8(0x000D)
+#define PRODSIGNATURES_WAFNUM  _SFR_MEM8(0x0010)
+#define PRODSIGNATURES_COORDX0  _SFR_MEM8(0x0012)
+#define PRODSIGNATURES_COORDX1  _SFR_MEM8(0x0013)
+#define PRODSIGNATURES_COORDY0  _SFR_MEM8(0x0014)
+#define PRODSIGNATURES_COORDY1  _SFR_MEM8(0x0015)
+#define PRODSIGNATURES_USBCAL0  _SFR_MEM8(0x001A)
+#define PRODSIGNATURES_USBCAL1  _SFR_MEM8(0x001B)
+#define PRODSIGNATURES_USBRCOSC  _SFR_MEM8(0x001C)
+#define PRODSIGNATURES_USBRCOSCA  _SFR_MEM8(0x001D)
+#define PRODSIGNATURES_ADCACAL0  _SFR_MEM8(0x0020)
+#define PRODSIGNATURES_ADCACAL1  _SFR_MEM8(0x0021)
+#define PRODSIGNATURES_ADCBCAL0  _SFR_MEM8(0x0024)
+#define PRODSIGNATURES_ADCBCAL1  _SFR_MEM8(0x0025)
+#define PRODSIGNATURES_TEMPSENSE0  _SFR_MEM8(0x002E)
+#define PRODSIGNATURES_TEMPSENSE1  _SFR_MEM8(0x002F)
+#define PRODSIGNATURES_DACA0OFFCAL  _SFR_MEM8(0x0030)
+#define PRODSIGNATURES_DACA0GAINCAL  _SFR_MEM8(0x0031)
+#define PRODSIGNATURES_DACB0OFFCAL  _SFR_MEM8(0x0032)
+#define PRODSIGNATURES_DACB0GAINCAL  _SFR_MEM8(0x0033)
+#define PRODSIGNATURES_DACA1OFFCAL  _SFR_MEM8(0x0034)
+#define PRODSIGNATURES_DACA1GAINCAL  _SFR_MEM8(0x0035)
+#define PRODSIGNATURES_DACB1OFFCAL  _SFR_MEM8(0x0036)
+#define PRODSIGNATURES_DACB1GAINCAL  _SFR_MEM8(0x0037)
 
 /* VPORT - Virtual Port */
 #define VPORT0_DIR  _SFR_MEM8(0x0010)
@@ -3392,6 +3223,45 @@ IO Module Instances. Mapped to memory.
 #define ADCA_CH3_RES  _SFR_MEM16(0x023C)
 #define ADCA_CH3_SCAN  _SFR_MEM8(0x023E)
 
+/* ADC - Analog-to-Digital Converter */
+#define ADCB_CTRLA  _SFR_MEM8(0x0240)
+#define ADCB_CTRLB  _SFR_MEM8(0x0241)
+#define ADCB_REFCTRL  _SFR_MEM8(0x0242)
+#define ADCB_EVCTRL  _SFR_MEM8(0x0243)
+#define ADCB_PRESCALER  _SFR_MEM8(0x0244)
+#define ADCB_INTFLAGS  _SFR_MEM8(0x0246)
+#define ADCB_TEMP  _SFR_MEM8(0x0247)
+#define ADCB_CAL  _SFR_MEM16(0x024C)
+#define ADCB_CH0RES  _SFR_MEM16(0x0250)
+#define ADCB_CH1RES  _SFR_MEM16(0x0252)
+#define ADCB_CH2RES  _SFR_MEM16(0x0254)
+#define ADCB_CH3RES  _SFR_MEM16(0x0256)
+#define ADCB_CMP  _SFR_MEM16(0x0258)
+#define ADCB_CH0_CTRL  _SFR_MEM8(0x0260)
+#define ADCB_CH0_MUXCTRL  _SFR_MEM8(0x0261)
+#define ADCB_CH0_INTCTRL  _SFR_MEM8(0x0262)
+#define ADCB_CH0_INTFLAGS  _SFR_MEM8(0x0263)
+#define ADCB_CH0_RES  _SFR_MEM16(0x0264)
+#define ADCB_CH0_SCAN  _SFR_MEM8(0x0266)
+#define ADCB_CH1_CTRL  _SFR_MEM8(0x0268)
+#define ADCB_CH1_MUXCTRL  _SFR_MEM8(0x0269)
+#define ADCB_CH1_INTCTRL  _SFR_MEM8(0x026A)
+#define ADCB_CH1_INTFLAGS  _SFR_MEM8(0x026B)
+#define ADCB_CH1_RES  _SFR_MEM16(0x026C)
+#define ADCB_CH1_SCAN  _SFR_MEM8(0x026E)
+#define ADCB_CH2_CTRL  _SFR_MEM8(0x0270)
+#define ADCB_CH2_MUXCTRL  _SFR_MEM8(0x0271)
+#define ADCB_CH2_INTCTRL  _SFR_MEM8(0x0272)
+#define ADCB_CH2_INTFLAGS  _SFR_MEM8(0x0273)
+#define ADCB_CH2_RES  _SFR_MEM16(0x0274)
+#define ADCB_CH2_SCAN  _SFR_MEM8(0x0276)
+#define ADCB_CH3_CTRL  _SFR_MEM8(0x0278)
+#define ADCB_CH3_MUXCTRL  _SFR_MEM8(0x0279)
+#define ADCB_CH3_INTCTRL  _SFR_MEM8(0x027A)
+#define ADCB_CH3_INTFLAGS  _SFR_MEM8(0x027B)
+#define ADCB_CH3_RES  _SFR_MEM16(0x027C)
+#define ADCB_CH3_SCAN  _SFR_MEM8(0x027E)
+
 /* DAC - Digital-to-Analog Converter */
 #define DACB_CTRLA  _SFR_MEM8(0x0320)
 #define DACB_CTRLB  _SFR_MEM8(0x0321)
@@ -3415,6 +3285,16 @@ IO Module Instances. Mapped to memory.
 #define ACA_CTRLB  _SFR_MEM8(0x0385)
 #define ACA_WINCTRL  _SFR_MEM8(0x0386)
 #define ACA_STATUS  _SFR_MEM8(0x0387)
+
+/* AC - Analog Comparator */
+#define ACB_AC0CTRL  _SFR_MEM8(0x0390)
+#define ACB_AC1CTRL  _SFR_MEM8(0x0391)
+#define ACB_AC0MUXCTRL  _SFR_MEM8(0x0392)
+#define ACB_AC1MUXCTRL  _SFR_MEM8(0x0393)
+#define ACB_CTRLA  _SFR_MEM8(0x0394)
+#define ACB_CTRLB  _SFR_MEM8(0x0395)
+#define ACB_WINCTRL  _SFR_MEM8(0x0396)
+#define ACB_STATUS  _SFR_MEM8(0x0397)
 
 /* RTC - Real-Time Counter */
 #define RTC_CTRL  _SFR_MEM8(0x0400)
@@ -3594,6 +3474,30 @@ IO Module Instances. Mapped to memory.
 #define PORTE_PIN5CTRL  _SFR_MEM8(0x0695)
 #define PORTE_PIN6CTRL  _SFR_MEM8(0x0696)
 #define PORTE_PIN7CTRL  _SFR_MEM8(0x0697)
+
+/* PORT - I/O Ports */
+#define PORTF_DIR  _SFR_MEM8(0x06A0)
+#define PORTF_DIRSET  _SFR_MEM8(0x06A1)
+#define PORTF_DIRCLR  _SFR_MEM8(0x06A2)
+#define PORTF_DIRTGL  _SFR_MEM8(0x06A3)
+#define PORTF_OUT  _SFR_MEM8(0x06A4)
+#define PORTF_OUTSET  _SFR_MEM8(0x06A5)
+#define PORTF_OUTCLR  _SFR_MEM8(0x06A6)
+#define PORTF_OUTTGL  _SFR_MEM8(0x06A7)
+#define PORTF_IN  _SFR_MEM8(0x06A8)
+#define PORTF_INTCTRL  _SFR_MEM8(0x06A9)
+#define PORTF_INT0MASK  _SFR_MEM8(0x06AA)
+#define PORTF_INT1MASK  _SFR_MEM8(0x06AB)
+#define PORTF_INTFLAGS  _SFR_MEM8(0x06AC)
+#define PORTF_REMAP  _SFR_MEM8(0x06AE)
+#define PORTF_PIN0CTRL  _SFR_MEM8(0x06B0)
+#define PORTF_PIN1CTRL  _SFR_MEM8(0x06B1)
+#define PORTF_PIN2CTRL  _SFR_MEM8(0x06B2)
+#define PORTF_PIN3CTRL  _SFR_MEM8(0x06B3)
+#define PORTF_PIN4CTRL  _SFR_MEM8(0x06B4)
+#define PORTF_PIN5CTRL  _SFR_MEM8(0x06B5)
+#define PORTF_PIN6CTRL  _SFR_MEM8(0x06B6)
+#define PORTF_PIN7CTRL  _SFR_MEM8(0x06B7)
 
 /* PORT - I/O Ports */
 #define PORTR_DIR  _SFR_MEM8(0x07E0)
@@ -3858,6 +3762,64 @@ IO Module Instances. Mapped to memory.
 #define TCE0_CCCBUF  _SFR_MEM16(0x0A3C)
 #define TCE0_CCDBUF  _SFR_MEM16(0x0A3E)
 
+/* TC2 - 16-bit Timer/Counter type 2 */
+#define TCE2_CTRLA  _SFR_MEM8(0x0A00)
+#define TCE2_CTRLB  _SFR_MEM8(0x0A01)
+#define TCE2_CTRLC  _SFR_MEM8(0x0A02)
+#define TCE2_CTRLE  _SFR_MEM8(0x0A04)
+#define TCE2_INTCTRLA  _SFR_MEM8(0x0A06)
+#define TCE2_INTCTRLB  _SFR_MEM8(0x0A07)
+#define TCE2_CTRLF  _SFR_MEM8(0x0A09)
+#define TCE2_INTFLAGS  _SFR_MEM8(0x0A0C)
+#define TCE2_LCNT  _SFR_MEM8(0x0A20)
+#define TCE2_HCNT  _SFR_MEM8(0x0A21)
+#define TCE2_LPER  _SFR_MEM8(0x0A26)
+#define TCE2_HPER  _SFR_MEM8(0x0A27)
+#define TCE2_LCMPA  _SFR_MEM8(0x0A28)
+#define TCE2_HCMPA  _SFR_MEM8(0x0A29)
+#define TCE2_LCMPB  _SFR_MEM8(0x0A2A)
+#define TCE2_HCMPB  _SFR_MEM8(0x0A2B)
+#define TCE2_LCMPC  _SFR_MEM8(0x0A2C)
+#define TCE2_HCMPC  _SFR_MEM8(0x0A2D)
+#define TCE2_LCMPD  _SFR_MEM8(0x0A2E)
+#define TCE2_HCMPD  _SFR_MEM8(0x0A2F)
+
+/* TC1 - 16-bit Timer/Counter 1 */
+#define TCE1_CTRLA  _SFR_MEM8(0x0A40)
+#define TCE1_CTRLB  _SFR_MEM8(0x0A41)
+#define TCE1_CTRLC  _SFR_MEM8(0x0A42)
+#define TCE1_CTRLD  _SFR_MEM8(0x0A43)
+#define TCE1_CTRLE  _SFR_MEM8(0x0A44)
+#define TCE1_INTCTRLA  _SFR_MEM8(0x0A46)
+#define TCE1_INTCTRLB  _SFR_MEM8(0x0A47)
+#define TCE1_CTRLFCLR  _SFR_MEM8(0x0A48)
+#define TCE1_CTRLFSET  _SFR_MEM8(0x0A49)
+#define TCE1_CTRLGCLR  _SFR_MEM8(0x0A4A)
+#define TCE1_CTRLGSET  _SFR_MEM8(0x0A4B)
+#define TCE1_INTFLAGS  _SFR_MEM8(0x0A4C)
+#define TCE1_TEMP  _SFR_MEM8(0x0A4F)
+#define TCE1_CNT  _SFR_MEM16(0x0A60)
+#define TCE1_PER  _SFR_MEM16(0x0A66)
+#define TCE1_CCA  _SFR_MEM16(0x0A68)
+#define TCE1_CCB  _SFR_MEM16(0x0A6A)
+#define TCE1_PERBUF  _SFR_MEM16(0x0A76)
+#define TCE1_CCABUF  _SFR_MEM16(0x0A78)
+#define TCE1_CCBBUF  _SFR_MEM16(0x0A7A)
+
+/* AWEX - Advanced Waveform Extension */
+#define AWEXE_CTRL  _SFR_MEM8(0x0A80)
+#define AWEXE_FDEMASK  _SFR_MEM8(0x0A82)
+#define AWEXE_FDCTRL  _SFR_MEM8(0x0A83)
+#define AWEXE_STATUS  _SFR_MEM8(0x0A84)
+#define AWEXE_STATUSSET  _SFR_MEM8(0x0A85)
+#define AWEXE_DTBOTH  _SFR_MEM8(0x0A86)
+#define AWEXE_DTBOTHBUF  _SFR_MEM8(0x0A87)
+#define AWEXE_DTLS  _SFR_MEM8(0x0A88)
+#define AWEXE_DTHS  _SFR_MEM8(0x0A89)
+#define AWEXE_DTLSBUF  _SFR_MEM8(0x0A8A)
+#define AWEXE_DTHSBUF  _SFR_MEM8(0x0A8B)
+#define AWEXE_OUTOVEN  _SFR_MEM8(0x0A8C)
+
 /* HIRES - High-Resolution Extension */
 #define HIRESE_CTRLA  _SFR_MEM8(0x0A90)
 
@@ -3869,6 +3831,81 @@ IO Module Instances. Mapped to memory.
 #define USARTE0_CTRLC  _SFR_MEM8(0x0AA5)
 #define USARTE0_BAUDCTRLA  _SFR_MEM8(0x0AA6)
 #define USARTE0_BAUDCTRLB  _SFR_MEM8(0x0AA7)
+
+/* USART - Universal Synchronous/Asynchronous Receiver/Transmitter */
+#define USARTE1_DATA  _SFR_MEM8(0x0AB0)
+#define USARTE1_STATUS  _SFR_MEM8(0x0AB1)
+#define USARTE1_CTRLA  _SFR_MEM8(0x0AB3)
+#define USARTE1_CTRLB  _SFR_MEM8(0x0AB4)
+#define USARTE1_CTRLC  _SFR_MEM8(0x0AB5)
+#define USARTE1_BAUDCTRLA  _SFR_MEM8(0x0AB6)
+#define USARTE1_BAUDCTRLB  _SFR_MEM8(0x0AB7)
+
+/* SPI - Serial Peripheral Interface */
+#define SPIE_CTRL  _SFR_MEM8(0x0AC0)
+#define SPIE_INTCTRL  _SFR_MEM8(0x0AC1)
+#define SPIE_STATUS  _SFR_MEM8(0x0AC2)
+#define SPIE_DATA  _SFR_MEM8(0x0AC3)
+
+/* TC0 - 16-bit Timer/Counter 0 */
+#define TCF0_CTRLA  _SFR_MEM8(0x0B00)
+#define TCF0_CTRLB  _SFR_MEM8(0x0B01)
+#define TCF0_CTRLC  _SFR_MEM8(0x0B02)
+#define TCF0_CTRLD  _SFR_MEM8(0x0B03)
+#define TCF0_CTRLE  _SFR_MEM8(0x0B04)
+#define TCF0_INTCTRLA  _SFR_MEM8(0x0B06)
+#define TCF0_INTCTRLB  _SFR_MEM8(0x0B07)
+#define TCF0_CTRLFCLR  _SFR_MEM8(0x0B08)
+#define TCF0_CTRLFSET  _SFR_MEM8(0x0B09)
+#define TCF0_CTRLGCLR  _SFR_MEM8(0x0B0A)
+#define TCF0_CTRLGSET  _SFR_MEM8(0x0B0B)
+#define TCF0_INTFLAGS  _SFR_MEM8(0x0B0C)
+#define TCF0_TEMP  _SFR_MEM8(0x0B0F)
+#define TCF0_CNT  _SFR_MEM16(0x0B20)
+#define TCF0_PER  _SFR_MEM16(0x0B26)
+#define TCF0_CCA  _SFR_MEM16(0x0B28)
+#define TCF0_CCB  _SFR_MEM16(0x0B2A)
+#define TCF0_CCC  _SFR_MEM16(0x0B2C)
+#define TCF0_CCD  _SFR_MEM16(0x0B2E)
+#define TCF0_PERBUF  _SFR_MEM16(0x0B36)
+#define TCF0_CCABUF  _SFR_MEM16(0x0B38)
+#define TCF0_CCBBUF  _SFR_MEM16(0x0B3A)
+#define TCF0_CCCBUF  _SFR_MEM16(0x0B3C)
+#define TCF0_CCDBUF  _SFR_MEM16(0x0B3E)
+
+/* TC2 - 16-bit Timer/Counter type 2 */
+#define TCF2_CTRLA  _SFR_MEM8(0x0B00)
+#define TCF2_CTRLB  _SFR_MEM8(0x0B01)
+#define TCF2_CTRLC  _SFR_MEM8(0x0B02)
+#define TCF2_CTRLE  _SFR_MEM8(0x0B04)
+#define TCF2_INTCTRLA  _SFR_MEM8(0x0B06)
+#define TCF2_INTCTRLB  _SFR_MEM8(0x0B07)
+#define TCF2_CTRLF  _SFR_MEM8(0x0B09)
+#define TCF2_INTFLAGS  _SFR_MEM8(0x0B0C)
+#define TCF2_LCNT  _SFR_MEM8(0x0B20)
+#define TCF2_HCNT  _SFR_MEM8(0x0B21)
+#define TCF2_LPER  _SFR_MEM8(0x0B26)
+#define TCF2_HPER  _SFR_MEM8(0x0B27)
+#define TCF2_LCMPA  _SFR_MEM8(0x0B28)
+#define TCF2_HCMPA  _SFR_MEM8(0x0B29)
+#define TCF2_LCMPB  _SFR_MEM8(0x0B2A)
+#define TCF2_HCMPB  _SFR_MEM8(0x0B2B)
+#define TCF2_LCMPC  _SFR_MEM8(0x0B2C)
+#define TCF2_HCMPC  _SFR_MEM8(0x0B2D)
+#define TCF2_LCMPD  _SFR_MEM8(0x0B2E)
+#define TCF2_HCMPD  _SFR_MEM8(0x0B2F)
+
+/* HIRES - High-Resolution Extension */
+#define HIRESF_CTRLA  _SFR_MEM8(0x0B90)
+
+/* USART - Universal Synchronous/Asynchronous Receiver/Transmitter */
+#define USARTF0_DATA  _SFR_MEM8(0x0BA0)
+#define USARTF0_STATUS  _SFR_MEM8(0x0BA1)
+#define USARTF0_CTRLA  _SFR_MEM8(0x0BA3)
+#define USARTF0_CTRLB  _SFR_MEM8(0x0BA4)
+#define USARTF0_CTRLC  _SFR_MEM8(0x0BA5)
+#define USARTF0_BAUDCTRLA  _SFR_MEM8(0x0BA6)
+#define USARTF0_BAUDCTRLB  _SFR_MEM8(0x0BA7)
 
 
 
@@ -5453,7 +5490,7 @@ IO Module Instances. Mapped to memory.
 #define AC_AC0IF_bm  0x01  /* Analog Comparator 0 Interrupt Flag bit mask. */
 #define AC_AC0IF_bp  0  /* Analog Comparator 0 Interrupt Flag bit position. */
 
-/* RTC - Real-Time Clounter */
+/* RTC - Real-Time Counter */
 /* RTC.CTRL  bit masks and bit positions */
 #define RTC_PRESCALER_gm  0x07  /* Prescaling Factor group mask. */
 #define RTC_PRESCALER_gp  0  /* Prescaling Factor group position. */
@@ -6836,6 +6873,26 @@ IO Module Instances. Mapped to memory.
 #define NVM_LOCKBITS_LB1_bm  (1<<1)  /* Lock Bits bit 1 mask. */
 #define NVM_LOCKBITS_LB1_bp  1  /* Lock Bits bit 1 position. */
 
+/* NVM_FUSES.FUSEBYTE0  bit masks and bit positions */
+#define NVM_FUSES_JTAGUSERID_gm  0xFF  /* JTAG User ID group mask. */
+#define NVM_FUSES_JTAGUSERID_gp  0  /* JTAG User ID group position. */
+#define NVM_FUSES_JTAGUSERID0_bm  (1<<0)  /* JTAG User ID bit 0 mask. */
+#define NVM_FUSES_JTAGUSERID0_bp  0  /* JTAG User ID bit 0 position. */
+#define NVM_FUSES_JTAGUSERID1_bm  (1<<1)  /* JTAG User ID bit 1 mask. */
+#define NVM_FUSES_JTAGUSERID1_bp  1  /* JTAG User ID bit 1 position. */
+#define NVM_FUSES_JTAGUSERID2_bm  (1<<2)  /* JTAG User ID bit 2 mask. */
+#define NVM_FUSES_JTAGUSERID2_bp  2  /* JTAG User ID bit 2 position. */
+#define NVM_FUSES_JTAGUSERID3_bm  (1<<3)  /* JTAG User ID bit 3 mask. */
+#define NVM_FUSES_JTAGUSERID3_bp  3  /* JTAG User ID bit 3 position. */
+#define NVM_FUSES_JTAGUSERID4_bm  (1<<4)  /* JTAG User ID bit 4 mask. */
+#define NVM_FUSES_JTAGUSERID4_bp  4  /* JTAG User ID bit 4 position. */
+#define NVM_FUSES_JTAGUSERID5_bm  (1<<5)  /* JTAG User ID bit 5 mask. */
+#define NVM_FUSES_JTAGUSERID5_bp  5  /* JTAG User ID bit 5 position. */
+#define NVM_FUSES_JTAGUSERID6_bm  (1<<6)  /* JTAG User ID bit 6 mask. */
+#define NVM_FUSES_JTAGUSERID6_bp  6  /* JTAG User ID bit 6 position. */
+#define NVM_FUSES_JTAGUSERID7_bm  (1<<7)  /* JTAG User ID bit 7 mask. */
+#define NVM_FUSES_JTAGUSERID7_bp  7  /* JTAG User ID bit 7 position. */
+
 /* NVM_FUSES.FUSEBYTE1  bit masks and bit positions */
 #define NVM_FUSES_WDWP_gm  0xF0  /* Watchdog Window Timeout Period group mask. */
 #define NVM_FUSES_WDWP_gp  4  /* Watchdog Window Timeout Period group position. */
@@ -6886,6 +6943,9 @@ IO Module Instances. Mapped to memory.
 
 #define NVM_FUSES_WDLOCK_bm  0x02  /* Watchdog Timer Lock bit mask. */
 #define NVM_FUSES_WDLOCK_bp  1  /* Watchdog Timer Lock bit position. */
+
+#define NVM_FUSES_JTAGEN_bm  0x01  /* JTAG Interface Enable bit mask. */
+#define NVM_FUSES_JTAGEN_bp  0  /* JTAG Interface Enable bit position. */
 
 /* NVM_FUSES.FUSEBYTE5  bit masks and bit positions */
 #define NVM_FUSES_BODACT_gm  0x30  /* BOD Operation in Active Mode group mask. */
@@ -7063,6 +7123,24 @@ IO Module Instances. Mapped to memory.
 #define PORTB_INT1_vect_num  35
 #define PORTB_INT1_vect      _VECTOR(35)  /* External Interrupt 1 */
 
+/* ACB interrupt vectors */
+#define ACB_AC0_vect_num  36
+#define ACB_AC0_vect      _VECTOR(36)  /* AC0 Interrupt */
+#define ACB_AC1_vect_num  37
+#define ACB_AC1_vect      _VECTOR(37)  /* AC1 Interrupt */
+#define ACB_ACW_vect_num  38
+#define ACB_ACW_vect      _VECTOR(38)  /* ACW Window Mode Interrupt */
+
+/* ADCB interrupt vectors */
+#define ADCB_CH0_vect_num  39
+#define ADCB_CH0_vect      _VECTOR(39)  /* Interrupt 0 */
+#define ADCB_CH1_vect_num  40
+#define ADCB_CH1_vect      _VECTOR(40)  /* Interrupt 1 */
+#define ADCB_CH2_vect_num  41
+#define ADCB_CH2_vect      _VECTOR(41)  /* Interrupt 2 */
+#define ADCB_CH3_vect_num  42
+#define ADCB_CH3_vect      _VECTOR(42)  /* Interrupt 3 */
+
 /* PORTE interrupt vectors */
 #define PORTE_INT0_vect_num  43
 #define PORTE_INT0_vect      _VECTOR(43)  /* External Interrupt 0 */
@@ -7078,16 +7156,64 @@ IO Module Instances. Mapped to memory.
 /* TCE0 interrupt vectors */
 #define TCE0_OVF_vect_num  47
 #define TCE0_OVF_vect      _VECTOR(47)  /* Overflow Interrupt */
+
+/* TCE2 interrupt vectors */
+#define TCE2_LUNF_vect_num  47
+#define TCE2_LUNF_vect      _VECTOR(47)  /* Low Byte Underflow Interrupt */
+
+/* TCE0 interrupt vectors */
 #define TCE0_ERR_vect_num  48
 #define TCE0_ERR_vect      _VECTOR(48)  /* Error Interrupt */
+
+/* TCE2 interrupt vectors */
+#define TCE2_HUNF_vect_num  48
+#define TCE2_HUNF_vect      _VECTOR(48)  /* High Byte Underflow Interrupt */
+
+/* TCE0 interrupt vectors */
 #define TCE0_CCA_vect_num  49
 #define TCE0_CCA_vect      _VECTOR(49)  /* Compare or Capture A Interrupt */
+
+/* TCE2 interrupt vectors */
+#define TCE2_LCMPA_vect_num  49
+#define TCE2_LCMPA_vect      _VECTOR(49)  /* Low Byte Compare A Interrupt */
+
+/* TCE0 interrupt vectors */
 #define TCE0_CCB_vect_num  50
 #define TCE0_CCB_vect      _VECTOR(50)  /* Compare or Capture B Interrupt */
+
+/* TCE2 interrupt vectors */
+#define TCE2_LCMPB_vect_num  50
+#define TCE2_LCMPB_vect      _VECTOR(50)  /* Low Byte Compare B Interrupt */
+
+/* TCE0 interrupt vectors */
 #define TCE0_CCC_vect_num  51
 #define TCE0_CCC_vect      _VECTOR(51)  /* Compare or Capture C Interrupt */
+
+/* TCE2 interrupt vectors */
+#define TCE2_LCMPC_vect_num  51
+#define TCE2_LCMPC_vect      _VECTOR(51)  /* Low Byte Compare C Interrupt */
+
+/* TCE0 interrupt vectors */
 #define TCE0_CCD_vect_num  52
 #define TCE0_CCD_vect      _VECTOR(52)  /* Compare or Capture D Interrupt */
+
+/* TCE2 interrupt vectors */
+#define TCE2_LCMPD_vect_num  52
+#define TCE2_LCMPD_vect      _VECTOR(52)  /* Low Byte Compare D Interrupt */
+
+/* TCE1 interrupt vectors */
+#define TCE1_OVF_vect_num  53
+#define TCE1_OVF_vect      _VECTOR(53)  /* Overflow Interrupt */
+#define TCE1_ERR_vect_num  54
+#define TCE1_ERR_vect      _VECTOR(54)  /* Error Interrupt */
+#define TCE1_CCA_vect_num  55
+#define TCE1_CCA_vect      _VECTOR(55)  /* Compare or Capture A Interrupt */
+#define TCE1_CCB_vect_num  56
+#define TCE1_CCB_vect      _VECTOR(56)  /* Compare or Capture B Interrupt */
+
+/* SPIE interrupt vectors */
+#define SPIE_INT_vect_num  57
+#define SPIE_INT_vect      _VECTOR(57)  /* SPI Interrupt */
 
 /* USARTE0 interrupt vectors */
 #define USARTE0_RXC_vect_num  58
@@ -7096,6 +7222,14 @@ IO Module Instances. Mapped to memory.
 #define USARTE0_DRE_vect      _VECTOR(59)  /* Data Register Empty Interrupt */
 #define USARTE0_TXC_vect_num  60
 #define USARTE0_TXC_vect      _VECTOR(60)  /* Transmission Complete Interrupt */
+
+/* USARTE1 interrupt vectors */
+#define USARTE1_RXC_vect_num  61
+#define USARTE1_RXC_vect      _VECTOR(61)  /* Reception Complete Interrupt */
+#define USARTE1_DRE_vect_num  62
+#define USARTE1_DRE_vect      _VECTOR(62)  /* Data Register Empty Interrupt */
+#define USARTE1_TXC_vect_num  63
+#define USARTE1_TXC_vect      _VECTOR(63)  /* Transmission Complete Interrupt */
 
 /* PORTD interrupt vectors */
 #define PORTD_INT0_vect_num  64
@@ -7205,6 +7339,68 @@ IO Module Instances. Mapped to memory.
 #define USARTD1_TXC_vect_num  93
 #define USARTD1_TXC_vect      _VECTOR(93)  /* Transmission Complete Interrupt */
 
+/* PORTF interrupt vectors */
+#define PORTF_INT0_vect_num  104
+#define PORTF_INT0_vect      _VECTOR(104)  /* External Interrupt 0 */
+#define PORTF_INT1_vect_num  105
+#define PORTF_INT1_vect      _VECTOR(105)  /* External Interrupt 1 */
+
+/* TCF0 interrupt vectors */
+#define TCF0_OVF_vect_num  108
+#define TCF0_OVF_vect      _VECTOR(108)  /* Overflow Interrupt */
+
+/* TCF2 interrupt vectors */
+#define TCF2_LUNF_vect_num  108
+#define TCF2_LUNF_vect      _VECTOR(108)  /* Low Byte Underflow Interrupt */
+
+/* TCF0 interrupt vectors */
+#define TCF0_ERR_vect_num  109
+#define TCF0_ERR_vect      _VECTOR(109)  /* Error Interrupt */
+
+/* TCF2 interrupt vectors */
+#define TCF2_HUNF_vect_num  109
+#define TCF2_HUNF_vect      _VECTOR(109)  /* High Byte Underflow Interrupt */
+
+/* TCF0 interrupt vectors */
+#define TCF0_CCA_vect_num  110
+#define TCF0_CCA_vect      _VECTOR(110)  /* Compare or Capture A Interrupt */
+
+/* TCF2 interrupt vectors */
+#define TCF2_LCMPA_vect_num  110
+#define TCF2_LCMPA_vect      _VECTOR(110)  /* Low Byte Compare A Interrupt */
+
+/* TCF0 interrupt vectors */
+#define TCF0_CCB_vect_num  111
+#define TCF0_CCB_vect      _VECTOR(111)  /* Compare or Capture B Interrupt */
+
+/* TCF2 interrupt vectors */
+#define TCF2_LCMPB_vect_num  111
+#define TCF2_LCMPB_vect      _VECTOR(111)  /* Low Byte Compare B Interrupt */
+
+/* TCF0 interrupt vectors */
+#define TCF0_CCC_vect_num  112
+#define TCF0_CCC_vect      _VECTOR(112)  /* Compare or Capture C Interrupt */
+
+/* TCF2 interrupt vectors */
+#define TCF2_LCMPC_vect_num  112
+#define TCF2_LCMPC_vect      _VECTOR(112)  /* Low Byte Compare C Interrupt */
+
+/* TCF0 interrupt vectors */
+#define TCF0_CCD_vect_num  113
+#define TCF0_CCD_vect      _VECTOR(113)  /* Compare or Capture D Interrupt */
+
+/* TCF2 interrupt vectors */
+#define TCF2_LCMPD_vect_num  113
+#define TCF2_LCMPD_vect      _VECTOR(113)  /* Low Byte Compare D Interrupt */
+
+/* USARTF0 interrupt vectors */
+#define USARTF0_RXC_vect_num  119
+#define USARTF0_RXC_vect      _VECTOR(119)  /* Reception Complete Interrupt */
+#define USARTF0_DRE_vect_num  120
+#define USARTF0_DRE_vect      _VECTOR(120)  /* Data Register Empty Interrupt */
+#define USARTF0_TXC_vect_num  121
+#define USARTF0_TXC_vect      _VECTOR(121)  /* Transmission Complete Interrupt */
+
 /* USB interrupt vectors */
 #define USB_BUSEVENT_vect_num  125
 #define USB_BUSEVENT_vect      _VECTOR(125)  /* SOF, suspend, resume, reset bus event interrupts, crc, underflow, overflow and stall error interrupts */
@@ -7218,26 +7414,26 @@ IO Module Instances. Mapped to memory.
 /* ========== Constants ========== */
 
 #define PROGMEM_START     (0x0000)
-#define PROGMEM_SIZE      (36864)
+#define PROGMEM_SIZE      (270336)
 #define PROGMEM_END       (PROGMEM_START + PROGMEM_SIZE - 1)
 
 #define APP_SECTION_START     (0x0000)
-#define APP_SECTION_SIZE      (32768)
-#define APP_SECTION_PAGE_SIZE (256)
+#define APP_SECTION_SIZE      (262144)
+#define APP_SECTION_PAGE_SIZE (512)
 #define APP_SECTION_END       (APP_SECTION_START + APP_SECTION_SIZE - 1)
 
-#define APPTABLE_SECTION_START     (0x7000)
-#define APPTABLE_SECTION_SIZE      (4096)
-#define APPTABLE_SECTION_PAGE_SIZE (256)
+#define APPTABLE_SECTION_START     (0x3E000)
+#define APPTABLE_SECTION_SIZE      (8192)
+#define APPTABLE_SECTION_PAGE_SIZE (512)
 #define APPTABLE_SECTION_END       (APPTABLE_SECTION_START + APPTABLE_SECTION_SIZE - 1)
 
-#define BOOT_SECTION_START     (0x8000)
-#define BOOT_SECTION_SIZE      (4096)
-#define BOOT_SECTION_PAGE_SIZE (256)
+#define BOOT_SECTION_START     (0x40000)
+#define BOOT_SECTION_SIZE      (8192)
+#define BOOT_SECTION_PAGE_SIZE (512)
 #define BOOT_SECTION_END       (BOOT_SECTION_START + BOOT_SECTION_SIZE - 1)
 
 #define DATAMEM_START     (0x0000)
-#define DATAMEM_SIZE      (12288)
+#define DATAMEM_SIZE      (24576)
 #define DATAMEM_END       (DATAMEM_START + DATAMEM_SIZE - 1)
 
 #define IO_START     (0x0000)
@@ -7246,42 +7442,47 @@ IO Module Instances. Mapped to memory.
 #define IO_END       (IO_START + IO_SIZE - 1)
 
 #define MAPPED_EEPROM_START     (0x1000)
-#define MAPPED_EEPROM_SIZE      (1024)
+#define MAPPED_EEPROM_SIZE      (4096)
 #define MAPPED_EEPROM_PAGE_SIZE (0)
 #define MAPPED_EEPROM_END       (MAPPED_EEPROM_START + MAPPED_EEPROM_SIZE - 1)
 
 #define INTERNAL_SRAM_START     (0x2000)
-#define INTERNAL_SRAM_SIZE      (4096)
+#define INTERNAL_SRAM_SIZE      (16384)
 #define INTERNAL_SRAM_PAGE_SIZE (0)
 #define INTERNAL_SRAM_END       (INTERNAL_SRAM_START + INTERNAL_SRAM_SIZE - 1)
 
 #define EEPROM_START     (0x0000)
-#define EEPROM_SIZE      (1024)
+#define EEPROM_SIZE      (4096)
 #define EEPROM_PAGE_SIZE (32)
 #define EEPROM_END       (EEPROM_START + EEPROM_SIZE - 1)
 
 #define SIGNATURES_START     (0x0000)
 #define SIGNATURES_SIZE      (3)
+#define SIGNATURES_PAGE_SIZE (0)
 #define SIGNATURES_END       (SIGNATURES_START + SIGNATURES_SIZE - 1)
 
 #define FUSES_START     (0x0000)
 #define FUSES_SIZE      (6)
+#define FUSES_PAGE_SIZE (0)
 #define FUSES_END       (FUSES_START + FUSES_SIZE - 1)
 
 #define LOCKBITS_START     (0x0000)
 #define LOCKBITS_SIZE      (1)
+#define LOCKBITS_PAGE_SIZE (0)
 #define LOCKBITS_END       (LOCKBITS_START + LOCKBITS_SIZE - 1)
 
 #define USER_SIGNATURES_START     (0x0000)
-#define USER_SIGNATURES_SIZE      (256)
+#define USER_SIGNATURES_SIZE      (512)
+#define USER_SIGNATURES_PAGE_SIZE (512)
 #define USER_SIGNATURES_END       (USER_SIGNATURES_START + USER_SIGNATURES_SIZE - 1)
 
 #define PROD_SIGNATURES_START     (0x0000)
 #define PROD_SIGNATURES_SIZE      (52)
+#define PROD_SIGNATURES_PAGE_SIZE (512)
 #define PROD_SIGNATURES_END       (PROD_SIGNATURES_START + PROD_SIGNATURES_SIZE - 1)
 
 #define FLASHEND     PROGMEM_END
-#define SPM_PAGESIZE 256
+#define SPM_PAGESIZE 512
 #define RAMSTART     INTERNAL_SRAM_START
 #define RAMSIZE      INTERNAL_SRAM_SIZE
 #define RAMEND       INTERNAL_SRAM_END
@@ -7292,7 +7493,16 @@ IO Module Instances. Mapped to memory.
 /* ========== Fuses ========== */
 #define FUSE_MEMORY_SIZE 6
 
-/* Fuse Byte 0 Reserved */
+/* Fuse Byte 0 */
+#define FUSE_JTAGUSERID0  (unsigned char)~_BV(0)  /* JTAG User ID Bit 0 */
+#define FUSE_JTAGUSERID1  (unsigned char)~_BV(1)  /* JTAG User ID Bit 1 */
+#define FUSE_JTAGUSERID2  (unsigned char)~_BV(2)  /* JTAG User ID Bit 2 */
+#define FUSE_JTAGUSERID3  (unsigned char)~_BV(3)  /* JTAG User ID Bit 3 */
+#define FUSE_JTAGUSERID4  (unsigned char)~_BV(4)  /* JTAG User ID Bit 4 */
+#define FUSE_JTAGUSERID5  (unsigned char)~_BV(5)  /* JTAG User ID Bit 5 */
+#define FUSE_JTAGUSERID6  (unsigned char)~_BV(6)  /* JTAG User ID Bit 6 */
+#define FUSE_JTAGUSERID7  (unsigned char)~_BV(7)  /* JTAG User ID Bit 7 */
+#define FUSE0_DEFAULT  (0xFF)
 
 /* Fuse Byte 1 */
 #define FUSE_WDP0  (unsigned char)~_BV(0)  /* Watchdog Timeout Period Bit 0 */
@@ -7315,6 +7525,7 @@ IO Module Instances. Mapped to memory.
 /* Fuse Byte 3 Reserved */
 
 /* Fuse Byte 4 */
+#define FUSE_JTAGEN  (unsigned char)~_BV(0)  /* JTAG Interface Enable */
 #define FUSE_WDLOCK  (unsigned char)~_BV(1)  /* Watchdog Timer Lock */
 #define FUSE_SUT0  (unsigned char)~_BV(2)  /* Start-up Time Bit 0 */
 #define FUSE_SUT1  (unsigned char)~_BV(3)  /* Start-up Time Bit 1 */
@@ -7338,9 +7549,9 @@ IO Module Instances. Mapped to memory.
 
 /* ========== Signature ========== */
 #define SIGNATURE_0 0x1E
-#define SIGNATURE_1 0x95
-#define SIGNATURE_2 0x41
+#define SIGNATURE_1 0x98
+#define SIGNATURE_2 0x42
 
 
-#endif /* #ifdef _AVR_ATXMEGA32A4U_H_INCLUDED */
+#endif /* #ifdef _AVR_ATXMEGA256A3U_H_INCLUDED */
 

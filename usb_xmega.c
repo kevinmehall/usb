@@ -7,12 +7,14 @@
 //
 // Licensed under the terms of the GNU GPLv3+
 
-#define __INCLUDE_FROM_EVENTS_C
+#include <avr/io.h>
+
+#define DEFINE_EVENT_ALIASES
 #include "usb.h"
 
 uint8_t ep0_buf_in[USB_EP0SIZE];
 uint8_t ep0_buf_out[USB_EP0SIZE];
-USB_EP_pair_t endpoints[USB_MAXEP+1] __attribute__((aligned(2), section(".usbendpoints")));
+USB_EP_pair_t endpoints[USB_MAXEP+1] GCC_FORCE_ALIGN_2;
 
 
 volatile uint8_t USB_DeviceState;
@@ -63,33 +65,12 @@ void USB_ep0_send_progmem(const uint8_t* addr, uint16_t size){
 	USB_ep0_send(size);
 }
 
-void USB_Task(){
-	if (USB.STATUS & USB_BUSRST_bm){
-		USB.STATUS &= ~USB_BUSRST_bm;
-		USB_Init();
-	}
-
-	if (endpoints[0].out.STATUS & USB_EP_SETUP_bm){
-		endpoints[0].out.CTRL |= USB_EP_TOGGLE_bm;
-		endpoints[0].in.CTRL |= USB_EP_TOGGLE_bm;
-		if (!USB_HandleSetup()){
-			endpoints[0].out.CTRL |= USB_EP_STALL_bm;
-			endpoints[0].in.CTRL |= USB_EP_STALL_bm; 
-		}
-		endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm );
-	}else if(endpoints[0].out.STATUS & USB_EP_TRNCOMPL0_bm){
-		EVENT_USB_Device_ControlOUT((uint8_t *) ep0_buf_out, endpoints[0].out.CNT);
-		endpoints[0].out.STATUS &= ~(USB_EP_TRNCOMPL0_bm | USB_EP_BUSNACK0_bm);
-	}
-}
-
-
 void USB_ConfigureClock(){
 	// Configure DFLL for 48MHz, calibrated by USB SOF
 	OSC.DFLLCTRL = OSC_RC32MCREF_USBSOF_gc;
 	NVM.CMD  = NVM_CMD_READ_CALIB_ROW_gc;
 	DFLLRC32M.CALB = pgm_read_byte(offsetof(NVM_PROD_SIGNATURES_t, USBRCOSC));
-	DFLLRC32M.COMP1 = 0x1B; //Xmega AU manual, p41
+	DFLLRC32M.COMP1 = 0x1B; //Xmega AU manual, 4.17.19
 	DFLLRC32M.COMP2 = 0xB7;
 	DFLLRC32M.CTRL = DFLL_ENABLE_bm;
 	
@@ -105,12 +86,10 @@ void USB_ConfigureClock(){
     
     while(!(OSC.STATUS & OSC_PLLRDY_bm)); // wait for PLL ready
     
+    DFLLRC2M.CTRL = DFLL_ENABLE_bm;
+
     CCP = CCP_IOREG_gc; //Security Signature to modify clock 
     CLK.CTRL = CLK_SCLKSEL_PLL_gc; // Select PLL
     CLK.PSCTRL = 0x00; // No peripheral clock prescaler
 }
 
-void USB_Event_Stub(void)
-{
-
-}

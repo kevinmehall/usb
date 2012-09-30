@@ -1,7 +1,7 @@
 import usb.core, usb.util
 import time
 
-dev = usb.core.find(idVendor=0x9999, idProduct=0xffff)
+dev = usb.core.find(idVendor=0x59e3, idProduct=0x0a23)
 dev.set_configuration(1)
 
 
@@ -31,7 +31,4 @@ def sendOut(d):
 	dev.write(0x02, d, 0, 100)
 
 def vendorGet():
-	return dev.ctrl_transfer(usb.util.CTRL_IN | usb.util.CTRL_TYPE_VENDOR, 0x23, 0, 0, 64)
-
-def bootloader():
-	return dev.ctrl_transfer(usb.util.CTRL_IN | usb.util.CTRL_TYPE_VENDOR, 0xbb, 0, 0, 64)
+	return dev.ctrl_transfer(0xC0, 0x23, 0, 0, 64)

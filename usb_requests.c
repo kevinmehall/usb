@@ -7,13 +7,14 @@
 //
 // Licensed under the terms of the GNU GPLv3+
 
+#include <avr/io.h>
 #include "usb.h"
 
 inline bool USB_handleSetAddress(USB_Request_Header_t* req){
 	uint8_t    DeviceAddress = (req -> wValue & 0x7F);
-	endpoints[0].out.STATUS &= ~(USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm);
+	USB_ep0_enableOut();
 	USB_ep0_send(0);
-	while (!(endpoints[0].in.STATUS & USB_EP_TRNCOMPL0_bm)); // wait for status stage to complete
+	USB_ep_wait(0x80);
 	USB.ADDR = DeviceAddress;
 	USB_DeviceState = (DeviceAddress) ? DEVICE_STATE_Addressed : DEVICE_STATE_Default;
 	return true;
@@ -87,6 +88,16 @@ inline bool USB_handleGetDescriptor(USB_Request_Header_t* req){
 }
 
 inline bool USB_handleSetConfiguration(USB_Request_Header_t* req){
+	USB_Descriptor_Device_t* DevDescriptorPtr;
+
+	uint8_t r = CALLBACK_USB_GetDescriptor((DTYPE_Device << 8), 0, (void*)&DevDescriptorPtr);
+	if (r == NO_DESCRIPTOR) return false;
+	
+	NVM.CMD = NVM_CMD_NO_OPERATION_gc;
+	uint8_t num_configs = pgm_read_byte(&DevDescriptorPtr->NumberOfConfigurations);
+	
+	if ((uint8_t)req->wValue > num_configs) return false;
+
 	USB_ep0_send(0);
 	USB_Device_ConfigurationNumber = (uint8_t)(req -> wValue);
 
@@ -95,7 +106,7 @@ inline bool USB_handleSetConfiguration(USB_Request_Header_t* req){
 	else
 	  USB_DeviceState = (USB.ADDR) ? DEVICE_STATE_Configured : DEVICE_STATE_Powered;
 
-	EVENT_USB_Device_ConfigurationChanged();
+	EVENT_USB_Device_ConfigurationChanged(USB_Device_ConfigurationNumber);
 	return true;
 }
 
@@ -123,6 +134,13 @@ bool USB_HandleSetup(void){
 				return true;
 			case REQ_SetConfiguration:
 				return USB_handleSetConfiguration(req);
+			case REQ_SetInterface:
+				if (EVENT_USB_Device_SetInterface(req->wIndex, req->wValue)){
+					USB_ep0_send(0);
+					return true;
+				}
+			case REQ_GetInterface:
+				return false;
 		}
 	}
 	
