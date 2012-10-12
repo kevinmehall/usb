@@ -38,21 +38,21 @@ typedef struct USB_Pipe{
 		.features = (FEATURES),        \
 	};                                 \
 
-inline void usb_pipe_init(const USB_Pipe* p){
+static inline void usb_pipe_init(const USB_Pipe* p){
 	pipe_reset(p->pipe);
 	USB_ep_init(p->ep, p->type, p->size);
 	p->data->toggle = 0;
 	p->data->flush = 0;
 }
 
-inline void usb_pipe_reset(const USB_Pipe* p){
+static inline void usb_pipe_reset(const USB_Pipe* p){
 	pipe_reset(p->pipe);
 	USB_ep_cancel(p->ep);
 	p->data->flush = 0;
 }
 
-inline void _usb_pipe_ep_start(const USB_Pipe* p, uint8_t* data, uint16_t size) ATTR_ALWAYS_INLINE;
-inline void _usb_pipe_ep_start(const USB_Pipe* p, uint8_t* data, uint16_t size){
+static inline void _usb_pipe_ep_start(const USB_Pipe* p, uint8_t* data, uint16_t size) ATTR_ALWAYS_INLINE;
+static inline void _usb_pipe_ep_start(const USB_Pipe* p, uint8_t* data, uint16_t size){
 	bool bank = 0;
 
 	if (p->ep & USB_EP_PP){
@@ -67,7 +67,7 @@ inline void _usb_pipe_ep_start(const USB_Pipe* p, uint8_t* data, uint16_t size){
 	}
 }
 
-inline void usb_pipe_handle(const USB_Pipe* p){
+static inline void usb_pipe_handle(const USB_Pipe* p){
 	if (p->ep & USB_EP_IN){
 		if (USB_ep_ready(p->ep)){
 			if (pipe_can_read(p->pipe) >= p->size){
@@ -98,27 +98,27 @@ inline void usb_pipe_handle(const USB_Pipe* p){
 	}
 }
 
-inline void usb_pipe_flush(const USB_Pipe* p) ATTR_ALWAYS_INLINE;
-inline void usb_pipe_flush(const USB_Pipe* p){
+static inline void usb_pipe_flush(const USB_Pipe* p) ATTR_ALWAYS_INLINE;
+static inline void usb_pipe_flush(const USB_Pipe* p){
 	GCC_ASSERT(p->features&PIPE_ENABLE_FLUSH && p->ep&USB_EP_IN);
 	p->data->flush = 1;
 }
 
-inline bool usb_pipe_flush_done(const USB_Pipe* p) ATTR_ALWAYS_INLINE;
-inline bool usb_pipe_flush_done(const USB_Pipe* p){
+static inline bool usb_pipe_flush_done(const USB_Pipe* p) ATTR_ALWAYS_INLINE;
+static inline bool usb_pipe_flush_done(const USB_Pipe* p){
 	GCC_ASSERT(p->features&PIPE_ENABLE_FLUSH);
 	return p->data->flush;
 }
 
-inline bool usb_pipe_can_write(const USB_Pipe* p, int16_t size) ATTR_ALWAYS_INLINE;
-inline bool usb_pipe_can_write(const USB_Pipe* p, int16_t size){
+static inline bool usb_pipe_can_write(const USB_Pipe* p, int16_t size) ATTR_ALWAYS_INLINE;
+static inline bool usb_pipe_can_write(const USB_Pipe* p, int16_t size){
 	if (p->features&PIPE_ENABLE_FLUSH && p->data->flush) return false;
 	return pipe_can_write(p->pipe) >= size;
 }
 
 extern void testfunc(uint8_t foo);
 
-inline bool usb_pipe_can_read(const USB_Pipe* p, int16_t size) ATTR_ALWAYS_INLINE;
-inline bool usb_pipe_can_read(const USB_Pipe* p, int16_t size){
+static inline bool usb_pipe_can_read(const USB_Pipe* p, int16_t size) ATTR_ALWAYS_INLINE;
+static inline bool usb_pipe_can_read(const USB_Pipe* p, int16_t size){
 	return pipe_can_read(p->pipe) >= size;
 }
