@@ -218,6 +218,17 @@ inline bool USB_ep_ready(uint8_t ep){
 	return e->STATUS & (USB_EP_BUSNACK0_bm | USB_EP_BUSNACK1_bm);
 }
 
+inline bool USB_ep_empty(uint8_t ep) ATTR_ALWAYS_INLINE;
+inline bool USB_ep_empty(uint8_t ep){
+	_USB_EP(ep);
+	if (ep & USB_EP_PP){
+		const uint8_t mask = (USB_EP_BUSNACK0_bm | USB_EP_BUSNACK1_bm);
+		return (e->STATUS & mask) == mask;
+	}else{
+		return e->STATUS & USB_EP_BUSNACK0_bm;
+	}
+}
+
 inline uint16_t USB_ep_count_bank(uint8_t ep, uint8_t bank) ATTR_ALWAYS_INLINE;
 inline uint16_t USB_ep_count_bank(uint8_t ep, uint8_t bank){
 	_USB_EP(ep);

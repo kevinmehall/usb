@@ -204,6 +204,9 @@
 	 *  \return Boolean true if the given value is known to be a compile time constant, false otherwise.
 	 */
 	#define GCC_IS_COMPILE_CONST(x)               __builtin_constant_p(x)
+
+	/** Compile-time assert */
+	#define GCC_ASSERT(e) ((void)sizeof(char[1 - 2*!(__builtin_constant_p(e) && (e))]))
 	
 	/** Like __attribute__(align(2)), but actually works. 
 	    From http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=121033

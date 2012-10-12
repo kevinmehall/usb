@@ -9,6 +9,8 @@ MCU = atxmega32a4
 ARCH = XMEGA
 DEVICE = AVR_ATxmega32A4U
 
+VID = 9999
+PID = ffff
 
 # Processor frequency.
 #     This will define a symbol, F_CPU, in all source code files equal to the
@@ -53,7 +55,7 @@ OBJDIR = .
 
 
 # Path to the USB library
-USB_PATH = ..
+USB_PATH = ../..
 USB_OPTS  += -D USB_MAXEP=2
 USB_OPTS  += -D USB_EP0SIZE=64
 
@@ -317,7 +319,8 @@ program: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 update: $(TARGET).hex
-	python update.py $(TARGET).hex
+	python $(USB_PATH)/bootloader/flash.py enter $(VID) $(PID)
+	python $(USB_PATH)/bootloader/flash.py $(TARGET).hex
 
 
 # Create final output files (.hex, .eep) from ELF output file.

@@ -3,78 +3,58 @@
 
 #include "Common.h"
 
+// Mutable part, becomes an actual struct
 typedef struct Pipe_data{
-	uint8_t* volatile read_ptr;
-	uint8_t* volatile write_ptr;
-	int8_t count;
-	uint8_t read_pos;
-	uint8_t write_pos;
+	uint8_t* read_ptr;
+	uint8_t* write_ptr;
+	int16_t count;
 } Pipe_data;
 
+// Immutable part, constant-folded at compile time
 typedef struct Pipe{
 	Pipe_data* data;
 	uint8_t* buffer;
-	uint16_t size;
-	int8_t count;
+	uint16_t size; // Number of bytes in the buffer
+	uint16_t reserve_read; // Bytes to prevent reading so they are available to writer
+	uint16_t reserve_write; // Bytes to prevent writing so they are available to reader
+	uint16_t read_size;
+	uint16_t write_size;
 } Pipe;
 
-#define PIPE_H(NAME, SIZE, COUNT)       \
-	extern Pipe_data NAME##_data;       \
-	extern uint8_t NAME##_buffer[(COUNT)][(SIZE)];   \
-	const static Pipe NAME = {          \
-		.data = &(NAME##_data),            \
-		.buffer = (NAME##_buffer)[0],       \
-		.size = (SIZE),                 \
-		.count = (COUNT)                \
+#define PIPE_H(NAME, SIZE, READ_SIZE, WRITE_SIZE, RESERVE_READ, RESERVE_WRITE)       \
+	extern Pipe_data NAME##_data;         \
+	extern uint8_t NAME##_buffer[(SIZE)]; \
+	const static Pipe NAME = {            \
+		.data = &(NAME##_data),           \
+		.buffer = &((NAME##_buffer)[0]),  \
+		.size = (SIZE),                   \
+		.read_size = (READ_SIZE),         \
+		.write_size = (WRITE_SIZE),       \
+		.reserve_read = (RESERVE_READ),   \
+		.reserve_write = (RESERVE_WRITE), \
 	};
 
 
-#define PIPE_C(NAME, SIZE, COUNT)            \
-	uint8_t NAME##_buffer[(COUNT)][(SIZE)];  \
+#define PIPE_C(NAME, SIZE)                   \
+	uint8_t NAME##_buffer[(SIZE)];           \
 	Pipe_data NAME##_data = {                \
-		.read_ptr = (NAME##_buffer)[0],      \
-		.write_ptr = (NAME##_buffer)[0],     \
 		.count = 0,                          \
-		.read_pos = 0,                       \
-		.write_pos = 0                       \
+		.read_ptr = &((NAME##_buffer)[0]),                       \
+		.write_ptr = &((NAME##_buffer)[0]),                      \
 	};
 
-#define PIPE(NAME, SIZE, COUNT) \
-	PIPE_H(NAME, SIZE, COUNT)   \
-	PIPE_C(NAME, SIZE, COUNT)
+#define PIPE(NAME, SIZE, READ_SIZE, WRITE_SIZE, RESERVE_READ, RESERVE_WRITE) \
+	PIPE_H(NAME, SIZE, READ_SIZE, WRITE_SIZE, RESERVE_READ, RESERVE_WRITE)   \
+	PIPE_C(NAME, SIZE)
 
-inline int8_t pipe_can_read(const Pipe* pipe) ATTR_ALWAYS_INLINE;
-inline int8_t pipe_can_read(const Pipe* pipe){
-	return pipe->data->count;
+inline int16_t pipe_can_read(const Pipe* pipe) ATTR_ALWAYS_INLINE;
+inline int16_t pipe_can_read(const Pipe* pipe){
+	return pipe->data->count - pipe->reserve_read;
 }
 
-inline int8_t pipe_can_write(const Pipe* pipe) ATTR_ALWAYS_INLINE;
-inline int8_t pipe_can_write(const Pipe* pipe){
-	return (int8_t)pipe->count - pipe->data->count;
-}
-
-inline void pipe_done_read(const Pipe* pipe) ATTR_ALWAYS_INLINE;
-inline void pipe_done_read(const Pipe* pipe){
-	pipe->data->count--;
-	uint8_t* p = pipe->data->read_ptr + pipe->size;
-	pipe->data->read_pos++;
-	if (pipe->data->read_pos>=pipe->count){
-		p = pipe->buffer;
-		pipe->data->read_pos = 0;
-	}
-	pipe->data->read_ptr = p;
-}
-
-inline void pipe_done_write(const Pipe* pipe) ATTR_ALWAYS_INLINE;
-inline void pipe_done_write(const Pipe* pipe){
-	uint8_t* p = pipe->data->write_ptr + pipe->size;
-	pipe->data->write_pos++;
-	if (pipe->data->write_pos >= pipe->count){
-		p = pipe->buffer;
-		pipe->data->write_pos = 0;
-	}
-	pipe->data->write_ptr = p;
-	pipe->data->count++;
+inline int16_t pipe_can_write(const Pipe* pipe) ATTR_ALWAYS_INLINE;
+inline int16_t pipe_can_write(const Pipe* pipe){
+	return (int16_t)pipe->size - pipe->data->count - pipe->reserve_write;
 }
 
 inline uint8_t* pipe_read_ptr(const Pipe* pipe) ATTR_ALWAYS_INLINE;
@@ -87,11 +67,43 @@ inline uint8_t* pipe_write_ptr(const Pipe* pipe){
 	return pipe->data->write_ptr;
 }
 
+inline void pipe_done_read(const Pipe* pipe) ATTR_ALWAYS_INLINE;
+inline void pipe_done_read(const Pipe* pipe){
+	pipe->data->count -= pipe->read_size;
+	pipe->data->read_ptr += pipe->read_size;
+	// Assumes pipe->size % size == 0 and all accesses aligned
+	if (pipe->data->read_ptr == &pipe->buffer[pipe->size])
+		pipe->data->read_ptr = &pipe->buffer[0];
+}
+
+inline void pipe_done_write(const Pipe* pipe) ATTR_ALWAYS_INLINE;
+inline void pipe_done_write(const Pipe* pipe){
+	pipe->data->count += pipe->write_size;
+	pipe->data->write_ptr += pipe->write_size;
+	// Assumes pipe->size % size == 0 and all accesses aligned
+	if (pipe->data->write_ptr == &pipe->buffer[pipe->size])
+		pipe->data->write_ptr = &pipe->buffer[0];
+}
+
+inline uint8_t pipe_read_byte(const Pipe* pipe) ATTR_ALWAYS_INLINE;
+inline uint8_t pipe_read_byte(const Pipe* pipe){
+	GCC_ASSERT(pipe->read_size == 1);
+	uint8_t r = *pipe->data->read_ptr;
+	pipe_done_read(pipe);
+	return r;
+}
+
+inline void pipe_write_byte(const Pipe* pipe, uint8_t v) ATTR_ALWAYS_INLINE;
+inline void pipe_write_byte(const Pipe* pipe, uint8_t v){
+	GCC_ASSERT(pipe->write_size == 1);
+	*pipe->data->write_ptr = v;
+	pipe_done_write(pipe);
+}
+
 inline void pipe_reset(const Pipe* pipe) ATTR_ALWAYS_INLINE;
 inline void pipe_reset(const Pipe* pipe){
 	pipe->data->count = 0;
 	pipe->data->read_ptr = pipe->data->write_ptr = pipe->buffer;
-	pipe->data->read_pos = pipe->data->write_pos = 0;
 }
 
 
