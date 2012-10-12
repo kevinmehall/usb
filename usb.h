@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <avr/io.h>
+
 #define CPU_TO_LE16(x) x
 
 struct USB_Request_Header;
