@@ -8,8 +8,6 @@
 #include "xmegatest.h"
 #include "usb_pipe.h"
 
-unsigned int timer = 15625; // 500ms
-
 USB_PIPE(ep_in,  0x81 | USB_EP_PP, USB_EP_TYPE_BULK_gc, 64, 512, 1, 0, PIPE_ENABLE_FLUSH);
 USB_PIPE(ep_out, 0x02 | USB_EP_PP, USB_EP_TYPE_BULK_gc, 64, 512, 1, 0, 0);
 
@@ -52,21 +50,58 @@ int main(void){
 	PORTR.DIRSET = 1 << 1;
 	
 	USB_ConfigureClock();
+
+	// Enable USB interrupts
+	USB.INTCTRLA = /*USB_SOFIE_bm |*/ USB_BUSEVIE_bm | USB_INTLVL_MED_gc;
+	USB.INTCTRLB = USB_TRNIE_bm | USB_SETUPIE_bm;
+
 	USB_Init();
 
-	sei();
+	PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
+	sei(); 
 	
 	TCC0.CTRLA = TC_CLKSEL_DIV1024_gc; // 31.25KHz = 0.032ms
+	TCC0.INTCTRLA = TC_OVFINTLVL_LO_gc; // interrupt on timer overflow
+	TCC0.PER = 1563; // ~50ms
+	TCC0.CNT = 0;
 	
 	configureEndpoint();
 	
 	while (1){
-		while(TCC0.CNT < timer){ 
-			USB_Task();
-			pollEndpoint();
+	}
+}
+
+ISR(USB_BUSEVENT_vect){
+	if (USB.INTFLAGSACLR & USB_SOFIF_bm){
+		USB.INTFLAGSACLR = USB_SOFIF_bm;
+	}else if (USB.INTFLAGSACLR & (USB_CRCIF_bm | USB_UNFIF_bm | USB_OVFIF_bm)){
+		USB.INTFLAGSACLR = (USB_CRCIF_bm | USB_UNFIF_bm | USB_OVFIF_bm);
+	}else if (USB.INTFLAGSACLR & USB_STALLIF_bm){
+		USB.INTFLAGSACLR = USB_STALLIF_bm;
+	}else{
+		USB.INTFLAGSACLR = USB_SUSPENDIF_bm | USB_RESUMEIF_bm | USB_RSTIF_bm;
+		USB_Evt_Task();
+	}
+}
+
+ISR(USB_TRNCOMPL_vect){
+	USB.FIFOWP = 0;
+	USB.INTFLAGSBCLR = USB_SETUPIF_bm | USB_TRNIF_bm;
+	USB_Task();
+	usb_pipe_handle(&ep_in);
+	usb_pipe_handle(&ep_out);
+}
+
+uint8_t counter = 0;
+ISR(TCC0_OVF_vect){
+	if (usb_pipe_can_write(&ep_in, 1)){
+		if (counter == 24){
+			usb_pipe_flush(&ep_in);
+			counter++;
+		}else{
+			usb_pipe_write_byte(&ep_in, counter++);
 		}
-		PORTE.OUTTGL = (1<<0);
-    	TCC0.CNT=0;
+		PORTR.OUTTGL = 2;
 	}
 }
 

@@ -3,12 +3,6 @@
 
 #include "Common.h"
 
-#include <util/atomic.h>
-#ifndef PIPE_ATOMIC
-#define PIPE_ATOMIC ATOMIC_RESTORESTATE
-#endif 
-
-
 // Mutable part, becomes an actual struct
 typedef struct Pipe_data{
 	uint8_t* read_ptr;
@@ -55,88 +49,61 @@ typedef struct Pipe{
 
 static inline int16_t pipe_can_read(const Pipe* pipe) ATTR_ALWAYS_INLINE;
 static inline int16_t pipe_can_read(const Pipe* pipe){
-	int16_t r;
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		r = pipe->data->count - pipe->reserve_read;
-	}
-	return r;
+	return pipe->data->count - pipe->reserve_read;
 }
 
 static inline int16_t pipe_can_write(const Pipe* pipe) ATTR_ALWAYS_INLINE;
 static inline int16_t pipe_can_write(const Pipe* pipe){
-	int16_t r;
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		r = pipe->size - pipe->data->count - pipe->reserve_write;
-	}
-	return r;
+	return (int16_t)pipe->size - pipe->data->count - pipe->reserve_write;
 }
 
 static inline uint8_t* pipe_read_ptr(const Pipe* pipe) ATTR_ALWAYS_INLINE;
 static inline uint8_t* pipe_read_ptr(const Pipe* pipe){
-	uint8_t *r;
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		r = pipe->data->read_ptr;
-	}
-	return r;
+	return pipe->data->read_ptr;
 }
 
 static inline uint8_t* pipe_write_ptr(const Pipe* pipe) ATTR_ALWAYS_INLINE;
 static inline uint8_t* pipe_write_ptr(const Pipe* pipe){
-	uint8_t* r;
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		r = pipe->data->write_ptr;
-	}
-	return r;
+	return pipe->data->write_ptr;
 }
 
 static inline void pipe_done_read(const Pipe* pipe) ATTR_ALWAYS_INLINE;
 static inline void pipe_done_read(const Pipe* pipe){
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		pipe->data->count -= pipe->read_size;
-		pipe->data->read_ptr += pipe->read_size;
-		// Assumes pipe->size % size == 0 and all accesses aligned
-		if (pipe->data->read_ptr == &pipe->buffer[pipe->size])
-			pipe->data->read_ptr = &pipe->buffer[0];
-	}
+	pipe->data->count -= pipe->read_size;
+	pipe->data->read_ptr += pipe->read_size;
+	// Assumes pipe->size % size == 0 and all accesses aligned
+	if (pipe->data->read_ptr == &pipe->buffer[pipe->size])
+		pipe->data->read_ptr = &pipe->buffer[0];
 }
 
 static inline void pipe_done_write(const Pipe* pipe) ATTR_ALWAYS_INLINE;
 static inline void pipe_done_write(const Pipe* pipe){
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		pipe->data->count += pipe->write_size;
-		pipe->data->write_ptr += pipe->write_size;
-		// Assumes pipe->size % size == 0 and all accesses aligned
-		if (pipe->data->write_ptr == &pipe->buffer[pipe->size])
-			pipe->data->write_ptr = &pipe->buffer[0];
-	}
+	pipe->data->count += pipe->write_size;
+	pipe->data->write_ptr += pipe->write_size;
+	// Assumes pipe->size % size == 0 and all accesses aligned
+	if (pipe->data->write_ptr == &pipe->buffer[pipe->size])
+		pipe->data->write_ptr = &pipe->buffer[0];
 }
 
 static inline uint8_t pipe_read_byte(const Pipe* pipe) ATTR_ALWAYS_INLINE;
 static inline uint8_t pipe_read_byte(const Pipe* pipe){
 	GCC_ASSERT(pipe->read_size == 1);
-	uint8_t r;
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		r = *pipe->data->read_ptr;
-		pipe_done_read(pipe);
-	}
+	uint8_t r = *pipe->data->read_ptr;
+	pipe_done_read(pipe);
 	return r;
 }
 
 static inline void pipe_write_byte(const Pipe* pipe, uint8_t v) ATTR_ALWAYS_INLINE;
 static inline void pipe_write_byte(const Pipe* pipe, uint8_t v){
 	GCC_ASSERT(pipe->write_size == 1);
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		*pipe->data->write_ptr = v;
-		pipe_done_write(pipe);
-	}
+	*pipe->data->write_ptr = v;
+	pipe_done_write(pipe);
 }
 
 static inline void pipe_reset(const Pipe* pipe) ATTR_ALWAYS_INLINE;
 static inline void pipe_reset(const Pipe* pipe){
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		pipe->data->count = 0;
-		pipe->data->read_ptr = pipe->data->write_ptr = pipe->buffer;
-	}
+	pipe->data->count = 0;
+	pipe->data->read_ptr = pipe->data->write_ptr = pipe->buffer;
 }
 
 
