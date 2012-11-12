@@ -9,13 +9,13 @@
 typedef struct USB_Pipe_data{
 	bool toggle;
 	uint8_t flush;
+	uint16_t packet_offset; // Index into current packet for byte mode
 } USB_Pipe_data;
 
 // Immutable part, constant-folded at compile time
 typedef struct USB_Pipe{
 	uint8_t ep;
 	uint8_t type;
-	uint16_t size;
 	USB_Pipe_data* data;
 	const Pipe* pipe;
 	uint8_t features;
@@ -23,13 +23,11 @@ typedef struct USB_Pipe{
 
 #define PIPE_ENABLE_FLUSH (1<<0)
 
-#define USB_PIPE(NAME, EPNO, TYPE, TRANSFER_SIZE, BUFFER_SIZE, BLOCK_SIZE, RESERVE, FEATURES) \
-	PIPE(NAME##_pipe, (BUFFER_SIZE),                                 \
-		((EPNO)&USB_EP_IN)?(TRANSFER_SIZE):(BLOCK_SIZE),             \
-		((EPNO)&USB_EP_IN)?(BLOCK_SIZE):(TRANSFER_SIZE),             \
-		((EPNO)&USB_EP_IN)?(RESERVE):((TRANSFER_SIZE)*2),            \
-		((EPNO)&USB_EP_IN)?((TRANSFER_SIZE)*2):(RESERVE)             \
-	);                                                               \
+#define USB_PIPE(NAME, EPNO, TYPE, PACKET_SIZE, BUFFER_PACKETS, FEATURES) \
+	PIPE(NAME##_pipe, (BUFFER_PACKETS), (PACKET_SIZE),               \
+		((EPNO)&USB_EP_IN)?0:2,                      \
+		((EPNO)&USB_EP_IN)?2:0                       \
+	);                                               \
 	USB_Pipe_data NAME##_data = {      \
 		.toggle = 0,                   \
 		.flush = 0,                    \
@@ -37,7 +35,6 @@ typedef struct USB_Pipe{
 	const static USB_Pipe NAME = {     \
 		.ep = (EPNO),                  \
 		.type = (TYPE),                \
-		.size = (TRANSFER_SIZE),       \
 		.data = &(NAME##_data),        \
 		.pipe = &(NAME##_pipe),        \
 		.features = (FEATURES),        \
@@ -46,9 +43,10 @@ typedef struct USB_Pipe{
 static inline void usb_pipe_init(const USB_Pipe* p){
 	ATOMIC_BLOCK(PIPE_ATOMIC){
 		pipe_reset(p->pipe);
-		USB_ep_init(p->ep, p->type, p->size);
+		USB_ep_init(p->ep, p->type, p->pipe->size);
 		p->data->toggle = 0;
 		p->data->flush = 0;
+		p->data->packet_offset = 0;
 	}
 }
 
@@ -57,6 +55,7 @@ static inline void usb_pipe_reset(const USB_Pipe* p){
 		pipe_reset(p->pipe);
 		USB_ep_cancel(p->ep);
 		p->data->flush = 0;
+		p->data->packet_offset = 0;
 	}
 }
 
@@ -80,23 +79,24 @@ static inline void usb_pipe_handle(const USB_Pipe* p){
 	ATOMIC_BLOCK(PIPE_ATOMIC){
 		if (p->ep & USB_EP_IN){
 			if (USB_ep_ready(p->ep)){
-				if (pipe_can_read(p->pipe) >= p->size){
-					_usb_pipe_ep_start(p, pipe_read_ptr(p->pipe), p->size);
+				if (pipe_can_read(p->pipe) >= 1){
+					_usb_pipe_ep_start(p, pipe_read_ptr(p->pipe), p->pipe->size);
 					pipe_done_read(p->pipe);
 				}else if (p->features & PIPE_ENABLE_FLUSH){
 					if (p->data->flush == 1){
 						p->data->flush = 2;
 						// Send short packet
-						_usb_pipe_ep_start(p, pipe_read_ptr(p->pipe), pipe_can_read(p->pipe));
+						_usb_pipe_ep_start(p, pipe_read_ptr(p->pipe), p->data->packet_offset);
 					}else if (p->data->flush == 2 && USB_ep_empty(p->ep)){
 						p->data->flush = 0;
+						p->data->packet_offset = 0;
 						pipe_reset(p->pipe);
 					}
 				}
 			}
 		}else{
-			if (USB_ep_ready(p->ep) && pipe_can_write(p->pipe) >= p->size){
-				_usb_pipe_ep_start(p, pipe_write_ptr(p->pipe), p->size);
+			if (USB_ep_ready(p->ep) && pipe_can_write(p->pipe) >= 1){
+				_usb_pipe_ep_start(p, pipe_write_ptr(p->pipe), p->pipe->size);
 				pipe_done_write(p->pipe);
 			}
 		}
@@ -116,41 +116,68 @@ static inline bool usb_pipe_flush_done(const USB_Pipe* p){
 	return p->data->flush;
 }
 
-static inline bool usb_pipe_can_write(const USB_Pipe* p, int16_t size) ATTR_ALWAYS_INLINE;
-static inline bool usb_pipe_can_write(const USB_Pipe* p, int16_t size){
+static inline bool usb_pipe_can_write(const USB_Pipe* p) ATTR_ALWAYS_INLINE;
+static inline bool usb_pipe_can_write(const USB_Pipe* p){
 	bool r;
 	ATOMIC_BLOCK(PIPE_ATOMIC){
 		if (p->features&PIPE_ENABLE_FLUSH && p->data->flush){
 			r = false;
 		}else{
-			r = pipe_can_write(p->pipe) >= size;
+			r = pipe_can_write(p->pipe) > 0;
 		}
 	}
 	return r;
 }
 
-static inline bool usb_pipe_can_read(const USB_Pipe* p, int16_t size) ATTR_ALWAYS_INLINE;
-static inline bool usb_pipe_can_read(const USB_Pipe* p, int16_t size){
+static inline uint8_t* usb_pipe_write_ptr(const USB_Pipe* p){
+	return pipe_write_ptr(p->pipe);
+}
+
+static inline void usb_pipe_done_write(const USB_Pipe* p){
+	ATOMIC_BLOCK(PIPE_ATOMIC){
+		pipe_done_write(p->pipe);
+	}
+}
+
+static inline bool usb_pipe_can_read(const USB_Pipe* p) ATTR_ALWAYS_INLINE;
+static inline bool usb_pipe_can_read(const USB_Pipe* p){
 	bool r;
 	ATOMIC_BLOCK(PIPE_ATOMIC){
-		r = pipe_can_read(p->pipe) >= size;
+		r = pipe_can_read(p->pipe) > 0;
 	}
 	return r;
+}
+
+static inline uint8_t* usb_pipe_read_ptr(const USB_Pipe* p){
+	return pipe_read_ptr(p->pipe);
+}
+
+static inline void usb_pipe_done_read(const USB_Pipe* p){
+	ATOMIC_BLOCK(PIPE_ATOMIC){
+		pipe_done_read(p->pipe);
+	}
 }
 
 static inline uint8_t usb_pipe_read_byte(const USB_Pipe* p){
-	uint8_t r;
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		r = pipe_read_byte(p->pipe);
+	uint8_t r = p->pipe->data->read_ptr[p->data->packet_offset++];
+	if (p->data->packet_offset == p->pipe->size){
+		ATOMIC_BLOCK(PIPE_ATOMIC){
+			p->data->packet_offset = 0;
+			pipe_done_read(p->pipe);
+			usb_pipe_handle(p);
+		}
 	}
-	usb_pipe_handle(p);
 	return r;
 }
 
-static inline void usb_pipe_write_byte(const USB_Pipe* p, uint8_t byte){
-	ATOMIC_BLOCK(PIPE_ATOMIC){
-		pipe_write_byte(p->pipe, byte);
+static inline void usb_pipe_write_byte(const USB_Pipe* p, uint8_t v){
+	p->pipe->data->write_ptr[p->data->packet_offset++] = v;
+	if (p->data->packet_offset == p->pipe->size){
+		ATOMIC_BLOCK(PIPE_ATOMIC){
+			p->data->packet_offset = 0;
+			pipe_done_write(p->pipe);
+			usb_pipe_handle(p);
+		}
 	}
-	usb_pipe_handle(p);
 }
 
