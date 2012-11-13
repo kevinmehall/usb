@@ -85,7 +85,6 @@ bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
 			USB_enter_bootloader();
 		}
 	}
-	
 	return false;
 }
 

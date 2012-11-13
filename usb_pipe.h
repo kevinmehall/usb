@@ -7,7 +7,7 @@
 #endif 
 
 typedef struct USB_Pipe_data{
-	bool toggle;
+	bool bank;
 	uint8_t flush;
 	uint16_t packet_offset; // Index into current packet for byte mode
 } USB_Pipe_data;
@@ -29,7 +29,7 @@ typedef struct USB_Pipe{
 		((EPNO)&USB_EP_IN)?2:0                       \
 	);                                               \
 	USB_Pipe_data NAME##_data = {      \
-		.toggle = 0,                   \
+		.bank = 0,                   \
 		.flush = 0,                    \
 	};                                 \
 	const static USB_Pipe NAME = {     \
@@ -44,7 +44,7 @@ static inline void usb_pipe_init(const USB_Pipe* p){
 	ATOMIC_BLOCK(PIPE_ATOMIC){
 		pipe_reset(p->pipe);
 		USB_ep_init(p->ep, p->type, p->pipe->size);
-		p->data->toggle = 0;
+		p->data->bank = 0;
 		p->data->flush = 0;
 		p->data->packet_offset = 0;
 	}
@@ -56,6 +56,7 @@ static inline void usb_pipe_reset(const USB_Pipe* p){
 		USB_ep_cancel(p->ep);
 		p->data->flush = 0;
 		p->data->packet_offset = 0;
+		p->data->bank = 0;
 	}
 }
 
@@ -64,8 +65,8 @@ static inline void _usb_pipe_ep_start(const USB_Pipe* p, uint8_t* data, uint16_t
 	bool bank = 0;
 
 	if (p->ep & USB_EP_PP){
-		bank = p->data->toggle;
-		p->data->toggle ^= 1;
+		bank = p->data->bank;
+		p->data->bank ^= 1;
 	}
 
 	if (bank == 0){ // Helps the optimzer constant-fold, since the multiply is expensive
