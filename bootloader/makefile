@@ -1,12 +1,12 @@
 # Based on the WinAVR Makefile Template written by Eric B. Weddington, Jörg Wunsch, et al.
 
 #Configuration
-CHECK_PORT=PORTR
-CHECK_PIN=0
-LED_PORT=PORTR
-LED_PIN=1
-HW_PRODUCT=Unknown
-HW_VERSION=0
+CHECK_PORT=PORTE
+CHECK_PIN=3
+LED_PORT=PORTE
+LED_PIN=0
+HW_PRODUCT=CEE
+HW_VERSION=v2b
 FW_VERSION=$(shell git describe --always --dirty='*')
 
 CONFIG_FLAGS=-D HW_PRODUCT="$(HW_PRODUCT)" -D HW_VERSION="$(HW_VERSION)" \
@@ -14,7 +14,7 @@ CONFIG_FLAGS=-D HW_PRODUCT="$(HW_PRODUCT)" -D HW_VERSION="$(HW_VERSION)" \
              -D LED_PORT=$(LED_PORT) -D LED_PIN=$(LED_PIN)
 
 # MCU name
-MCU = atxmega32a4
+MCU = atxmega32a4u
 ARCH = XMEGA
 DEVICE = AVR_ATxmega32A4U
 
@@ -180,43 +180,43 @@ ASFLAGS = $(ADEFS) -Wa,-adhlns=$(<:%.S=$(OBJDIR)/%.lst),-gstabs,--listing-cont-l
 EXTMEMOPTS =
 
 # Processor definitions
-ifeq ($(MCU), atxmega16a4)
+ifeq ($(MCU), atxmega16a4u)
   BOOT_SECTION_START		=0x004000
 endif
-ifeq ($(MCU), atxmega32a4)
+ifeq ($(MCU), atxmega32a4u)
   BOOT_SECTION_START		=0x008000
 endif
-ifeq ($(MCU), atxmega64a1)
+ifeq ($(MCU), atxmega64a1u)
   BOOT_SECTION_START		=0x010000
 endif
-ifeq ($(MCU), atxmega64a3)
+ifeq ($(MCU), atxmega64a3u)
   BOOT_SECTION_START		=0x010000
 endif
-ifeq ($(MCU), atxmega64a4)
+ifeq ($(MCU), atxmega64a4u)
   BOOT_SECTION_START		=0x010000
 endif
-ifeq ($(MCU), atxmega128a1)
+ifeq ($(MCU), atxmega128a1u)
   BOOT_SECTION_START		=0x020000
 endif
-ifeq ($(MCU), atxmega128a3)
+ifeq ($(MCU), atxmega128a3u)
   BOOT_SECTION_START		=0x020000
 endif
-ifeq ($(MCU), atxmega128a4)
+ifeq ($(MCU), atxmega128a4u)
   BOOT_SECTION_START		=0x020000
 endif
-ifeq ($(MCU), atxmega192a1)
+ifeq ($(MCU), atxmega192a1u)
   BOOT_SECTION_START		=0x030000
 endif
-ifeq ($(MCU), atxmega192a3)
+ifeq ($(MCU), atxmega192a3u)
   BOOT_SECTION_START		=0x030000
 endif
-ifeq ($(MCU), atxmega256a1)
+ifeq ($(MCU), atxmega256a1u)
   BOOT_SECTION_START		=0x040000
 endif
-ifeq ($(MCU), atxmega256a3)
+ifeq ($(MCU), atxmega256a3u)
   BOOT_SECTION_START		=0x040000
 endif
-ifeq ($(MCU), atxmega256a3b)
+ifeq ($(MCU), atxmega256a3bu)
   BOOT_SECTION_START		=0x040000
 endif
 
@@ -265,7 +265,7 @@ AVRDUDE_WRITE_FLASH = -e -U boot:w:$(TARGET).hex
 # to submit bug reports.
 #AVRDUDE_VERBOSE = -v -v
 
-AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
+AVRDUDE_FLAGS = -p atxmega32a4 -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
 AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
 AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)

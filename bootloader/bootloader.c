@@ -61,19 +61,19 @@ typedef struct{
 #endif
 
 #ifndef CHECK_PORT
-#define CHECK_PORT PORTR
+#define CHECK_PORT PORTE
 #endif
 
 #ifndef CHECK_PIN
-#define CHECK_PIN 0
+#define CHECK_PIN 3
 #endif
 
 #ifndef LED_PORT
-#define LED_PORT PORTR
+#define LED_PORT PORTE
 #endif
 
 #ifndef LED_PIN
-#define LED_PIN 1
+#define LED_PIN 0
 #endif
 
 #define CONCAT_HIDDEN(a, b, c) a##b##c
