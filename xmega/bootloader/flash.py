@@ -102,7 +102,7 @@ class Bootloader(object):
 		i = 0
 		tsize = 1024
 		while i<len(data):
-			self.dev.write(1, data[i:i+tsize], 0, 1000)
+			self.dev.write(1, data[i:i+tsize])
 			i+=tsize
 			
 			percent = 100*i/len(data)
