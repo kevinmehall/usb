@@ -10,8 +10,10 @@
 #include <avr/io.h>
 #include "usb.h"
 
-inline void USB_handleSetAddress(USB_SetupPacket* req){
-	uint8_t    DeviceAddress = (req -> wValue & 0x7F);
+USB_SetupPacket usb_setup;
+
+inline void USB_handleSetAddress(void){
+	uint8_t DeviceAddress = (usb_setup.wValue & 0x7F);
 	USB_ep0_enableOut();
 	USB_ep0_send(0);
 	USB_ep_wait(0x80);
@@ -19,13 +21,13 @@ inline void USB_handleSetAddress(USB_SetupPacket* req){
 	USB_DeviceState = (DeviceAddress) ? DEVICE_STATE_Addressed : DEVICE_STATE_Default;
 }
 
-inline void USB_handleGetDescriptor(USB_SetupPacket* req){
+inline void USB_handleGetDescriptor(void){
 	const void* DescriptorPointer;
 	uint16_t  DescriptorSize;
 	NVM.CMD = NVM_CMD_NO_OPERATION_gc;
 	
-	if ((DescriptorSize = CALLBACK_USB_GetDescriptor(req->wValue, req->wIndex, &DescriptorPointer))){
-		if (DescriptorSize > req->wLength) DescriptorSize=req->wLength;
+	if ((DescriptorSize = CALLBACK_USB_GetDescriptor(usb_setup.wValue, usb_setup.wIndex, &DescriptorPointer))){
+		if (DescriptorSize > usb_setup.wLength) DescriptorSize=usb_setup.wLength;
 		USB_ep0_send_progmem(DescriptorPointer, DescriptorSize);
 		return USB_ep0_enableOut();
 	} else {
@@ -33,23 +35,21 @@ inline void USB_handleGetDescriptor(USB_SetupPacket* req){
 	}
 }
 
-inline void USB_handleSetConfiguration(USB_SetupPacket* req){
-	if ((uint8_t)req->wValue > 1) {
+inline void USB_handleSetConfiguration(void){
+	if ((uint8_t)usb_setup.wValue > 1) {
 		return USB_ep0_stall();
 	}
 
 	USB_ep0_send(0);
-	USB_Device_ConfigurationNumber = (uint8_t)(req->wValue);
+	USB_Device_ConfigurationNumber = (uint8_t)(usb_setup.wValue);
 
 	EVENT_USB_Device_ConfigurationChanged(USB_Device_ConfigurationNumber);
 	return USB_ep0_enableOut();
 }
 
-void USB_HandleSetup(void){
-	USB_SetupPacket* req = (void *) ep0_buf_out;
-	
-	if ((req->bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){
-		switch (req->bRequest){
+void USB_HandleSetup(void){	
+	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){
+		switch (usb_setup.bRequest){
 			case USB_REQ_GetStatus:
 				ep0_buf_in[0] = 0;
 				ep0_buf_in[1] = 0;
@@ -60,17 +60,17 @@ void USB_HandleSetup(void){
 				USB_ep0_send(0);
 				return USB_ep0_enableOut();
 			case USB_REQ_SetAddress:
-				return USB_handleSetAddress(req);
+				return USB_handleSetAddress();
 			case USB_REQ_GetDescriptor:
-				return USB_handleGetDescriptor(req);
+				return USB_handleGetDescriptor();
 			case USB_REQ_GetConfiguration:
 				ep0_buf_in[0] = USB_Device_ConfigurationNumber;
 				USB_ep0_send(1);
 				return USB_ep0_enableOut();
 			case USB_REQ_SetConfiguration:
-				return USB_handleSetConfiguration(req);
+				return USB_handleSetConfiguration();
 			case USB_REQ_SetInterface:
-				if (EVENT_USB_Device_SetInterface(req->wIndex, req->wValue)){
+				if (EVENT_USB_Device_SetInterface(usb_setup.wIndex, usb_setup.wValue)){
 					USB_ep0_send(0);
 					return USB_ep0_enableOut();
 				} else {
@@ -81,6 +81,6 @@ void USB_HandleSetup(void){
 		}
 	}
 	
-	return EVENT_USB_Device_ControlRequest(req);
+	return EVENT_USB_Device_ControlRequest(&usb_setup);
 }
 

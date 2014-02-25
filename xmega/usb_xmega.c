@@ -117,6 +117,7 @@ ISR(USB_TRNCOMPL_vect){
 	uint8_t status = endpoints[0].out.STATUS;
 
 	if (status & USB_EP_SETUP_bm){
+		memcpy(&usb_setup, ep0_buf_out, sizeof(usb_setup));
 		USB_HandleSetup();
 	}else if(status & USB_EP_TRNCOMPL0_bm){
 		EVENT_USB_Device_ControlOUT((uint8_t *) ep0_buf_out, endpoints[0].out.CNT);
