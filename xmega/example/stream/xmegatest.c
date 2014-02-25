@@ -5,7 +5,6 @@
 // Licensed under the terms of the GNU GPLv3+
 
 #include <avr/io.h>
-#include "xmegatest.h"
 #include "usb_pipe.h"
 
 USB_PIPE(ep_in,  0x81 | USB_EP_PP, USB_EP_TYPE_BULK_gc, 64, 8, PIPE_ENABLE_FLUSH);
@@ -79,8 +78,8 @@ ISR(TCC0_OVF_vect){
 
 
 /** Event handler for the library USB Control Request reception event. */
-bool EVENT_USB_Device_ControlRequest(USB_Request_Header_t* req){
-	if ((req->bmRequestType & CONTROL_REQTYPE_TYPE) == REQTYPE_VENDOR){
+bool EVENT_USB_Device_ControlRequest(USB_SetupPacket* req){
+	if ((req->bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_VENDOR){
 		if (req->bRequest == 0xBB){
 			USB_enter_bootloader();
 		}

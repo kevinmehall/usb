@@ -4,7 +4,6 @@
 	extern "C" {
 #endif
 
-
 #ifdef DEFINE_EVENT_ALIASES
 	void USB_Event_Stub(void) ATTR_CONST;
 	void USB_Event_Stub(void){}
@@ -27,7 +26,7 @@ so handle them quickly.
 /** Callback to handle a control request that was not handled by the library. Return true
  *  if the request has been handled. Returning false will send a STALL to the host.
  */
-bool EVENT_USB_Device_ControlRequest(struct USB_Request_Header* req) ALIAS_DEFAULT_BOOL;
+bool EVENT_USB_Device_ControlRequest(USB_SetupPacket* req) ALIAS_DEFAULT_BOOL;
 
 /** Event when OUT data is received as part of a control transfer. */
 void EVENT_USB_Device_ControlOUT(uint8_t* data, uint8_t len) ALIAS_DEFAULT;
