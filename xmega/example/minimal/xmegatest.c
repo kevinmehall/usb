@@ -5,10 +5,7 @@
 // Licensed under the terms of the GNU GPLv3+
 
 #include <avr/io.h>
-#include "usb_pipe.h"
-
-USB_PIPE(ep_in,  0x81 | USB_EP_PP, USB_EP_TYPE_BULK_gc, 64, 8, PIPE_ENABLE_FLUSH);
-USB_PIPE(ep_out, 0x02 | USB_EP_PP, USB_EP_TYPE_BULK_gc, 64, 8, 0);
+#include "usb.h"
 
 int main(void){
 	PORTE.DIRSET = (1<<0) | (1<<1);
@@ -31,13 +28,7 @@ int main(void){
 }
 
 void EVENT_USB_Device_ConfigurationChanged(uint8_t config){
-	usb_pipe_init(&ep_in);
-	usb_pipe_init(&ep_out);
 
-	TCC0.CTRLA = TC_CLKSEL_DIV1024_gc; // 31.25KHz = 0.032ms
-	TCC0.INTCTRLA = TC_OVFINTLVL_LO_gc; // interrupt on timer overflow
-	TCC0.PER = 1563; // ~50ms
-	TCC0.CNT = 0;
 }
 
 ISR(USB_BUSEVENT_vect){
@@ -57,25 +48,7 @@ ISR(USB_TRNCOMPL_vect){
 	USB.FIFOWP = 0;
 	USB.INTFLAGSBCLR = USB_SETUPIF_bm | USB_TRNIF_bm;
 	USB_Task();
-	usb_pipe_handle(&ep_in);
-	usb_pipe_handle(&ep_out);
 }
-
-uint8_t counter = 0;
-ISR(TCC0_OVF_vect){
-	if (usb_pipe_can_read(&ep_out) && usb_pipe_can_write(&ep_in)){
-		PORTR.OUTTGL = 2;
-	}
-	while (usb_pipe_can_read(&ep_out) && usb_pipe_can_write(&ep_in)){
-		uint8_t v = usb_pipe_read_byte(&ep_out);
-		if (v == 0){
-			usb_pipe_flush(&ep_in);
-		}else{
-			usb_pipe_write_byte(&ep_in, v);
-		}
-	}
-}
-
 
 /** Event handler for the library USB Control Request reception event. */
 bool EVENT_USB_Device_ControlRequest(USB_SetupPacket* req){
