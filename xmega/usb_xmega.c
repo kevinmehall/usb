@@ -115,13 +115,19 @@ ISR(USB_TRNCOMPL_vect){
 
 	// Read once to prevent race condition where SETUP packet is interpreted as OUT
 	uint8_t status = endpoints[0].out.STATUS;
-
 	if (status & USB_EP_SETUP_bm){
+		// TODO: race conditions because we can't block a setup packet
+		LACR16(&(endpoints[0].out.STATUS), USB_EP_TRNCOMPL0_bm | USB_EP_SETUP_bm);
 		memcpy(&usb_setup, ep0_buf_out, sizeof(usb_setup));
-		USB_HandleSetup();
+		usb_handle_setup();
 	}else if(status & USB_EP_TRNCOMPL0_bm){
-		EVENT_USB_Device_ControlOUT((uint8_t *) ep0_buf_out, endpoints[0].out.CNT);
-		USB_ep0_enableOut();
+		USB_ep_clear_done(0);
+		usb_handle_control_out_complete();
+	}
+
+	if (endpoints[0].in.STATUS & USB_EP_TRNCOMPL0_bm) {
+		USB_ep_clear_done(0x80);
+		usb_handle_control_in_complete();
 	}
 }
 

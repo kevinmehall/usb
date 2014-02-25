@@ -271,15 +271,11 @@ inline uint8_t USB_ep_get_bank(uint8_t ep){
 }
 
 
-// Enable the OUT stage on the default control pipe. This happens automatically
-// upon the return of HandleSetup, but use this function if it needs to happen
-// before returning (e.g. with USB_ep_wait()).
+/// Enable the OUT stage on the default control pipe. 
 inline void USB_ep0_enableOut(void) ATTR_ALWAYS_INLINE;
 inline void USB_ep0_enableOut(void){
 	LACR16(&endpoints[0].out.STATUS, USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
 }
-
-void USB_HandleSetup(void);
 
 uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
                                     const uint8_t wIndex,

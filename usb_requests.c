@@ -12,15 +12,6 @@
 
 USB_SetupPacket usb_setup;
 
-inline void USB_handleSetAddress(void){
-	uint8_t DeviceAddress = (usb_setup.wValue & 0x7F);
-	USB_ep0_enableOut();
-	USB_ep0_send(0);
-	USB_ep_wait(0x80);
-	USB.ADDR = DeviceAddress;
-	USB_DeviceState = (DeviceAddress) ? DEVICE_STATE_Addressed : DEVICE_STATE_Default;
-}
-
 inline void USB_handleGetDescriptor(void){
 	const void* DescriptorPointer;
 	uint16_t  DescriptorSize;
@@ -47,7 +38,7 @@ inline void USB_handleSetConfiguration(void){
 	return USB_ep0_enableOut();
 }
 
-void USB_HandleSetup(void){	
+void usb_handle_setup(void){
 	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){
 		switch (usb_setup.bRequest){
 			case USB_REQ_GetStatus:
@@ -60,7 +51,8 @@ void USB_HandleSetup(void){
 				USB_ep0_send(0);
 				return USB_ep0_enableOut();
 			case USB_REQ_SetAddress:
-				return USB_handleSetAddress();
+				USB_ep0_enableOut();
+				return USB_ep0_send(0);
 			case USB_REQ_GetDescriptor:
 				return USB_handleGetDescriptor();
 			case USB_REQ_GetConfiguration:
@@ -82,5 +74,20 @@ void USB_HandleSetup(void){
 	}
 	
 	return EVENT_USB_Device_ControlRequest(&usb_setup);
+}
+
+void usb_handle_control_out_complete(void) {
+
+}
+
+
+void usb_handle_control_in_complete(void) {
+	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){
+		switch (usb_setup.bRequest){
+			case USB_REQ_SetAddress:
+				USB.ADDR = (usb_setup.wValue & 0x7F);
+				return;
+		}
+	}
 }
 
