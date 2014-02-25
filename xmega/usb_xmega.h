@@ -305,31 +305,6 @@ static inline void USB_Attach(void)
 	USB.CTRLB |= USB_ATTACH_bm;
 }
 
-inline void USB_Evt_Task(void) ATTR_ALWAYS_INLINE;
-inline void USB_Evt_Task(void){
-	if (USB.STATUS & USB_BUSRST_bm){
-		USB.STATUS &= ~USB_BUSRST_bm;
-		USB_Init();
-	}
-}
-
-inline void USB_Task(void) ATTR_ALWAYS_INLINE;
-inline void USB_Task(void){
-	// Read once to prevent race condition where SETUP packet is interpreted as OUT
-	uint8_t status = endpoints[0].out.STATUS;
-
-	if (status & USB_EP_SETUP_bm){
-		if (!USB_HandleSetup()){
-			endpoints[0].out.CTRL |= USB_EP_STALL_bm;
-			endpoints[0].in.CTRL |= USB_EP_STALL_bm; 
-		}
-		USB_ep0_enableOut();
-	}else if(status & USB_EP_TRNCOMPL0_bm){
-		EVENT_USB_Device_ControlOUT((uint8_t *) ep0_buf_out, endpoints[0].out.CNT);
-		USB_ep0_enableOut();
-	}
-}
-
 static inline void USB_enter_bootloader(void){
 	cli();
 	USB_ep0_send(0);

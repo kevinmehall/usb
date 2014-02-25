@@ -93,3 +93,38 @@ void USB_ConfigureClock(){
     CLK.PSCTRL = 0x00; // No peripheral clock prescaler
 }
 
+ISR(USB_BUSEVENT_vect){
+	if (USB.INTFLAGSACLR & USB_SOFIF_bm){
+		USB.INTFLAGSACLR = USB_SOFIF_bm;
+	}else if (USB.INTFLAGSACLR & (USB_CRCIF_bm | USB_UNFIF_bm | USB_OVFIF_bm)){
+		USB.INTFLAGSACLR = (USB_CRCIF_bm | USB_UNFIF_bm | USB_OVFIF_bm);
+	}else if (USB.INTFLAGSACLR & USB_STALLIF_bm){
+		USB.INTFLAGSACLR = USB_STALLIF_bm;
+	}else{
+		USB.INTFLAGSACLR = USB_SUSPENDIF_bm | USB_RESUMEIF_bm | USB_RSTIF_bm;
+		if (USB.STATUS & USB_BUSRST_bm){
+			USB.STATUS &= ~USB_BUSRST_bm;
+			USB_Init();
+		}
+	}
+}
+
+ISR(USB_TRNCOMPL_vect){
+	USB.FIFOWP = 0;
+	USB.INTFLAGSBCLR = USB_SETUPIF_bm | USB_TRNIF_bm;
+
+	// Read once to prevent race condition where SETUP packet is interpreted as OUT
+	uint8_t status = endpoints[0].out.STATUS;
+
+	if (status & USB_EP_SETUP_bm){
+		if (!USB_HandleSetup()){
+			endpoints[0].out.CTRL |= USB_EP_STALL_bm;
+			endpoints[0].in.CTRL  |= USB_EP_STALL_bm;
+		}
+		USB_ep0_enableOut();
+	}else if(status & USB_EP_TRNCOMPL0_bm){
+		EVENT_USB_Device_ControlOUT((uint8_t *) ep0_buf_out, endpoints[0].out.CNT);
+		USB_ep0_enableOut();
+	}
+}
+

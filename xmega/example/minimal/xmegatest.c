@@ -23,31 +23,11 @@ int main(void){
 	PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
 	sei(); 
 
-	while (1){
-	}
+	while (1){}
 }
 
 void EVENT_USB_Device_ConfigurationChanged(uint8_t config){
 
-}
-
-ISR(USB_BUSEVENT_vect){
-	if (USB.INTFLAGSACLR & USB_SOFIF_bm){
-		USB.INTFLAGSACLR = USB_SOFIF_bm;
-	}else if (USB.INTFLAGSACLR & (USB_CRCIF_bm | USB_UNFIF_bm | USB_OVFIF_bm)){
-		USB.INTFLAGSACLR = (USB_CRCIF_bm | USB_UNFIF_bm | USB_OVFIF_bm);
-	}else if (USB.INTFLAGSACLR & USB_STALLIF_bm){
-		USB.INTFLAGSACLR = USB_STALLIF_bm;
-	}else{
-		USB.INTFLAGSACLR = USB_SUSPENDIF_bm | USB_RESUMEIF_bm | USB_RSTIF_bm;
-		USB_Evt_Task();
-	}
-}
-
-ISR(USB_TRNCOMPL_vect){
-	USB.FIFOWP = 0;
-	USB.INTFLAGSBCLR = USB_SETUPIF_bm | USB_TRNIF_bm;
-	USB_Task();
 }
 
 /** Event handler for the library USB Control Request reception event. */
