@@ -26,7 +26,7 @@ so handle them quickly.
 /** Callback to handle a control request that was not handled by the library. Return true
  *  if the request has been handled. Returning false will send a STALL to the host.
  */
-bool EVENT_USB_Device_ControlRequest(USB_SetupPacket* req) ALIAS_DEFAULT_BOOL;
+void EVENT_USB_Device_ControlRequest(USB_SetupPacket* req) ALIAS_DEFAULT;
 
 /** Event when OUT data is received as part of a control transfer. */
 void EVENT_USB_Device_ControlOUT(uint8_t* data, uint8_t len) ALIAS_DEFAULT;

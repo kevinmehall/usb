@@ -10,17 +10,16 @@
 #include <avr/io.h>
 #include "usb.h"
 
-inline bool USB_handleSetAddress(USB_SetupPacket* req){
+inline void USB_handleSetAddress(USB_SetupPacket* req){
 	uint8_t    DeviceAddress = (req -> wValue & 0x7F);
 	USB_ep0_enableOut();
 	USB_ep0_send(0);
 	USB_ep_wait(0x80);
 	USB.ADDR = DeviceAddress;
 	USB_DeviceState = (DeviceAddress) ? DEVICE_STATE_Addressed : DEVICE_STATE_Default;
-	return true;
 }
 
-inline bool USB_handleGetDescriptor(USB_SetupPacket* req){
+inline void USB_handleGetDescriptor(USB_SetupPacket* req){
 	const void* DescriptorPointer;
 	uint16_t  DescriptorSize;
 	NVM.CMD = NVM_CMD_NO_OPERATION_gc;
@@ -28,24 +27,25 @@ inline bool USB_handleGetDescriptor(USB_SetupPacket* req){
 	if ((DescriptorSize = CALLBACK_USB_GetDescriptor(req->wValue, req->wIndex, &DescriptorPointer))){
 		if (DescriptorSize > req->wLength) DescriptorSize=req->wLength;
 		USB_ep0_send_progmem(DescriptorPointer, DescriptorSize);
-		return true;
+		return USB_ep0_enableOut();
+	} else {
+		return USB_ep0_stall();
 	}
-	return false;
 }
 
-inline bool USB_handleSetConfiguration(USB_SetupPacket* req){
+inline void USB_handleSetConfiguration(USB_SetupPacket* req){
 	if ((uint8_t)req->wValue > 1) {
-		return false;
+		return USB_ep0_stall();
 	}
 
 	USB_ep0_send(0);
 	USB_Device_ConfigurationNumber = (uint8_t)(req->wValue);
 
 	EVENT_USB_Device_ConfigurationChanged(USB_Device_ConfigurationNumber);
-	return true;
+	return USB_ep0_enableOut();
 }
 
-bool USB_HandleSetup(void){
+void USB_HandleSetup(void){
 	USB_SetupPacket* req = (void *) ep0_buf_out;
 	
 	if ((req->bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){
@@ -54,11 +54,11 @@ bool USB_HandleSetup(void){
 				ep0_buf_in[0] = 0;
 				ep0_buf_in[1] = 0;
 				USB_ep0_send(2);
-				return true;
+				return USB_ep0_enableOut();
 			case USB_REQ_ClearFeature:
 			case USB_REQ_SetFeature:
 				USB_ep0_send(0);
-				return true;
+				return USB_ep0_enableOut();
 			case USB_REQ_SetAddress:
 				return USB_handleSetAddress(req);
 			case USB_REQ_GetDescriptor:
@@ -66,16 +66,18 @@ bool USB_HandleSetup(void){
 			case USB_REQ_GetConfiguration:
 				ep0_buf_in[0] = USB_Device_ConfigurationNumber;
 				USB_ep0_send(1);
-				return true;
+				return USB_ep0_enableOut();
 			case USB_REQ_SetConfiguration:
 				return USB_handleSetConfiguration(req);
 			case USB_REQ_SetInterface:
 				if (EVENT_USB_Device_SetInterface(req->wIndex, req->wValue)){
 					USB_ep0_send(0);
-					return true;
+					return USB_ep0_enableOut();
+				} else {
+					return USB_ep0_stall();
 				}
-			case USB_REQ_GetInterface:
-				return false;
+			default:
+				return USB_ep0_enableOut();
 		}
 	}
 	

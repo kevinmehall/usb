@@ -279,7 +279,7 @@ inline void USB_ep0_enableOut(void){
 	LACR16(&endpoints[0].out.STATUS, USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
 }
 
-bool USB_HandleSetup(void);
+void USB_HandleSetup(void);
 
 uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
                                     const uint8_t wIndex,
@@ -303,6 +303,11 @@ static inline void USB_Attach(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Attach(void)
 {
 	USB.CTRLB |= USB_ATTACH_bm;
+}
+
+inline void USB_ep0_stall(void) {
+	endpoints[0].out.CTRL |= USB_EP_STALL_bm;
+	endpoints[0].in.CTRL  |= USB_EP_STALL_bm;
 }
 
 static inline void USB_enter_bootloader(void){

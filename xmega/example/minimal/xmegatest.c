@@ -31,12 +31,12 @@ void EVENT_USB_Device_ConfigurationChanged(uint8_t config){
 }
 
 /** Event handler for the library USB Control Request reception event. */
-bool EVENT_USB_Device_ControlRequest(USB_SetupPacket* req){
+void EVENT_USB_Device_ControlRequest(USB_SetupPacket* req){
 	if ((req->bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_VENDOR){
 		if (req->bRequest == 0xBB){
 			USB_enter_bootloader();
 		}
 	}
-	return false;
+	return USB_ep0_stall();
 }
 
