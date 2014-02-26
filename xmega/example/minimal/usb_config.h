@@ -2,18 +2,17 @@
 #include "usb_config_defs.h"
 
 const static USB_Device usb_device_config = {
-	.ep0_size = 64,
 	.cb_reset = NULL,
 	.cb_control_setup = NULL,
-	.cb_control_in = NULL,
-	.cb_control_out = NULL,
+	.cb_control_in_complete = NULL,
+	.cb_control_out_complete = NULL,
 };
 
 const static USB_Interface usb_interface_config[] = {
 	{
 		.cb_control_setup = NULL,
-		.cb_control_in = NULL,
-		.cb_control_out = NULL,
+		.cb_control_in_complete = NULL,
+		.cb_control_out_complete = NULL,
 		.cb_set_interface = NULL,
 	},
 };

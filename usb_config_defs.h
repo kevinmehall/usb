@@ -9,14 +9,14 @@ typedef struct {
 	void (*cb_get_descriptor)(uint16_t wValue, uint16_t wIndex, uint8_t **descriptor);
 	void (*cb_reset)(void);
 	void (*cb_control_setup)(void);
-	void (*cb_control_in)(void);
-	void (*cb_control_out)(void);
+	void (*cb_control_in_complete)(void);
+	void (*cb_control_out_complete)(void);
 } USB_Device;
 
 typedef struct {
 	void (*cb_control_setup)(void);
-	void (*cb_control_in)(void);
-	void (*cb_control_out)(void);
+	void (*cb_control_in_complete)(void);
+	void (*cb_control_out_complete)(void);
 	bool (*cb_set_interface)(uint16_t altsetting);
 } USB_Interface;
 

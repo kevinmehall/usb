@@ -61,6 +61,7 @@ void usb_handle_setup(void){
 				}
 			case USB_REQ_SetInterface:
 				if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
+					&& usb_interface_config[usb_setup.wIndex].cb_set_interface
 					&& usb_interface_config[usb_setup.wIndex].cb_set_interface(usb_setup.wValue)){
 					USB_ep0_send(0);
 					return USB_ep0_enableOut();
@@ -71,8 +72,15 @@ void usb_handle_setup(void){
 				return USB_ep0_enableOut();
 		}
 	}
-	
-	if (usb_device_config.cb_control_setup) {
+
+	if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
+		if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
+			&& usb_interface_config[usb_setup.wIndex].cb_control_setup) {
+			usb_interface_config[usb_setup.wIndex].cb_control_setup();
+		} else {
+			return USB_ep0_stall();
+		}
+	} else if (usb_device_config.cb_control_setup) {
 		return usb_device_config.cb_control_setup();
 	} else {
 		return USB_ep0_stall();
@@ -80,17 +88,36 @@ void usb_handle_setup(void){
 }
 
 void usb_handle_control_out_complete(void) {
-
+	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD) {
+		// Let the status stage proceed
+	} else if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
+		if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
+			&& usb_interface_config[usb_setup.wIndex].cb_control_out_complete) {
+			usb_interface_config[usb_setup.wIndex].cb_control_out_complete();
+		} else {
+			return USB_ep0_stall();
+		}
+	} else if (usb_device_config.cb_control_out_complete) {
+		usb_device_config.cb_control_out_complete();
+	}
 }
 
-
 void usb_handle_control_in_complete(void) {
-	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){
+	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD) {
 		switch (usb_setup.bRequest){
 			case USB_REQ_SetAddress:
 				USB.ADDR = (usb_setup.wValue & 0x7F);
 				return;
 		}
+	} else if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
+		if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
+			&& usb_interface_config[usb_setup.wIndex].cb_control_in_complete) {
+			usb_interface_config[usb_setup.wIndex].cb_control_in_complete();
+		} else {
+			return USB_ep0_stall();
+		}
+	} else if (usb_device_config.cb_control_in_complete) {
+		usb_device_config.cb_control_in_complete();
 	}
 }
 
