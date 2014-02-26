@@ -1,5 +1,5 @@
 #include <avr/pgmspace.h>
-#include "usb_standard.h"
+#include "usb.h"
 
 const USB_DeviceDescriptor PROGMEM device_descriptor = {
 	.bLength = sizeof(USB_DeviceDescriptor),
@@ -89,46 +89,35 @@ const USB_StringDescriptor PROGMEM product_string = {
 };
 
 
-uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
-                                    const uint8_t wIndex,
-                                    const void** const DescriptorAddress)
-{
-	const uint8_t  DescriptorType   = (wValue >> 8);
-	const uint8_t  DescriptorNumber = (wValue & 0xFF);
+uint16_t usb_cb_get_descriptor(uint8_t type, uint8_t index, const uint8_t** ptr) {
+	const void* address = NULL;
+	uint16_t size    = 0;
 
-	const void* Address = NULL;
-	uint16_t    Size    = 0;
-
-	switch (DescriptorType)
-	{
+	switch (type) {
 		case USB_DTYPE_Device:
-			Address = &device_descriptor;
-			Size    = sizeof(USB_DeviceDescriptor);
+			address = &device_descriptor;
+			size    = sizeof(USB_DeviceDescriptor);
 			break;
 		case USB_DTYPE_Configuration:
-			Address = &configuration_descriptor;
-			Size    = sizeof(ConfigDesc);
+			address = &configuration_descriptor;
+			size    = sizeof(ConfigDesc);
 			break;
 		case USB_DTYPE_String:
-			switch (DescriptorNumber) {
+			switch (index) {
 				case 0x00:
-					Address = &language_string;
-					Size    = pgm_read_byte(&language_string.bLength);
+					address = &language_string;
 					break;
 				case 0x01:
-					Address = &manufacturer_string;
-					Size    = pgm_read_byte(&manufacturer_string.bLength);
+					address = &manufacturer_string;
 					break;
 				case 0x02:
-					Address = &product_string;
-					Size    = pgm_read_byte(&product_string.bLength);
+					address = &product_string;
 					break;
 			}
-
+			size = pgm_read_byte(&((USB_StringDescriptor*)address)->bLength);
 			break;
 	}
 
-	*DescriptorAddress = Address;
-	return Size;
+	*ptr = USB_ep0_from_progmem(address, size);
+	return size;
 }
-

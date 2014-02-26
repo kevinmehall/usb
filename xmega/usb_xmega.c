@@ -55,14 +55,14 @@ void USB_ResetInterface(){
 	USB_Attach();
 }
 
-void USB_ep0_send_progmem(const uint8_t* addr, uint16_t size){
+const uint8_t* USB_ep0_from_progmem(const uint8_t* addr, uint16_t size) {
 	uint8_t *buf = ep0_buf_in;
 	uint16_t remaining = size;
 	NVM.CMD = NVM_CMD_NO_OPERATION_gc;
 	while (remaining--){
 		*buf++ = pgm_read_byte(addr++);
 	}
-	USB_ep0_send(size);
+	return ep0_buf_in;
 }
 
 void USB_ConfigureClock(){

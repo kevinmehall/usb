@@ -180,9 +180,9 @@ inline void USB_ep_out_start(uint8_t ep, uint8_t* addr){
 	USB_ep_start_bank(ep, 0, addr, 0);
 }
 
-inline void USB_ep_in_start(uint8_t ep, uint8_t* addr, uint16_t size) ATTR_ALWAYS_INLINE;
-inline void USB_ep_in_start(uint8_t ep, uint8_t* addr, uint16_t size){
-	USB_ep_start_bank(ep, 0, addr, size);
+inline void USB_ep_in_start(uint8_t ep, const uint8_t* addr, uint16_t size) ATTR_ALWAYS_INLINE;
+inline void USB_ep_in_start(uint8_t ep, const uint8_t* addr, uint16_t size){
+	USB_ep_start_bank(ep, 0, (uint8_t*) addr, size);
 }
 
 inline bool USB_ep_done_bank(uint8_t ep, uint8_t bank){
@@ -244,7 +244,8 @@ inline uint16_t USB_ep_count(uint8_t ep){
 inline void USB_ep0_send(uint8_t size){
 	USB_ep_in_start(0x80, ep0_buf_in, size);
 }
-void USB_ep0_send_progmem(const uint8_t* addr, uint16_t size);
+
+const uint8_t* USB_ep0_from_progmem(const uint8_t* addr, uint16_t size);
 
 inline void USB_ep_wait(uint8_t ep) ATTR_ALWAYS_INLINE;
 inline void USB_ep_wait(uint8_t ep){
@@ -275,10 +276,6 @@ inline void USB_ep0_enableOut(void) ATTR_ALWAYS_INLINE;
 inline void USB_ep0_enableOut(void){
 	LACR16(&endpoints[0].out.STATUS, USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
 }
-
-uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
-                                    const uint8_t wIndex,
-                                    const void** const DescriptorAddress);
 
 /** Detaches the device from the USB bus. This has the effect of removing the device from any
  *  attached host, ceasing USB communications. If no host is present, this prevents any host from

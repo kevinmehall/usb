@@ -13,13 +13,17 @@
 USB_SetupPacket usb_setup;
 
 inline void USB_handleGetDescriptor(void){
-	const void* DescriptorPointer;
-	uint16_t  DescriptorSize;
-	NVM.CMD = NVM_CMD_NO_OPERATION_gc;
+	uint8_t type = (usb_setup.wValue >> 8);
+	uint8_t index = (usb_setup.wValue & 0xFF);
+
+	const uint8_t* descriptor = 0;
+	uint16_t size = usb_cb_get_descriptor(type, index, &descriptor);
 	
-	if ((DescriptorSize = CALLBACK_USB_GetDescriptor(usb_setup.wValue, usb_setup.wIndex, &DescriptorPointer))){
-		if (DescriptorSize > usb_setup.wLength) DescriptorSize=usb_setup.wLength;
-		USB_ep0_send_progmem(DescriptorPointer, DescriptorSize);
+	if (size && descriptor){
+		if (size > usb_setup.wLength) {
+			size =usb_setup.wLength;
+		}
+		USB_ep_in_start(0x80, descriptor, size);
 		return USB_ep0_enableOut();
 	} else {
 		return USB_ep0_stall();
