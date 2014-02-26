@@ -11,6 +11,10 @@
 #include "usb.h"
 
 USB_SetupPacket usb_setup;
+uint8_t ep0_buf_in[USB_EP0_SIZE];
+uint8_t ep0_buf_out[USB_EP0_SIZE];
+volatile uint8_t USB_DeviceState;
+volatile uint8_t USB_Device_ConfigurationNumber;
 
 void usb_handle_setup(void){
 	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){

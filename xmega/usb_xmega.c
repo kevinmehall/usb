@@ -12,13 +12,7 @@
 #define DEFINE_EVENT_ALIASES
 #include "usb.h"
 
-uint8_t ep0_buf_in[USB_EP0_SIZE];
-uint8_t ep0_buf_out[USB_EP0_SIZE];
 USB_EP_pair_t endpoints[USB_NUM_EP+1] GCC_FORCE_ALIGN_2;
-
-
-volatile uint8_t USB_DeviceState;
-volatile uint8_t USB_Device_ConfigurationNumber;
 
 void USB_Init(){
 	//uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();

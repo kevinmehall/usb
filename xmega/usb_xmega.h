@@ -68,14 +68,6 @@
 #define LATR16(addr,msk) __lat(msk,addr)
 #endif
 
-#ifndef USB_NUM_EP
-	#define USB_NUM_EP 0
-#endif
-
-#ifndef USB_EP0_SIZE
-	#define USB_EP0_SIZE 64
-#endif
-
 typedef union USB_EP_pair{
 	union{
 		struct{
@@ -86,8 +78,6 @@ typedef union USB_EP_pair{
 	};
 } __attribute__((packed)) USB_EP_pair_t;
 
-extern uint8_t ep0_buf_in[USB_EP0_SIZE];
-extern uint8_t ep0_buf_out[USB_EP0_SIZE];
 extern USB_EP_pair_t endpoints[USB_NUM_EP+1];
 
 /** String descriptor index for the device's unique serial number string descriptor within the device.
@@ -163,9 +153,6 @@ extern USB_EP_pair_t endpoints[USB_NUM_EP+1];
 // address as seen by the host. If PP is enabled, this flag needs to be part
 // of the address passed to all USB_EP_* functions.
 #define USB_EP_PP 0x40
-	
-extern volatile uint8_t USB_DeviceState;
-extern volatile uint8_t USB_Device_ConfigurationNumber;
 
 /** Configure the XMEGA's clock for use with USB.  */
 void USB_ConfigureClock(void);
