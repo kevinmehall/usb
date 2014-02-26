@@ -143,6 +143,7 @@ CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wa,-adhlns=$(<:%.c=$(OBJDIR)/%.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
+CFLAGS += -flto
 
 
 #---------------- Compiler Options C++ ----------------
@@ -184,6 +185,7 @@ ASFLAGS = $(ADEFS) -Wa,-adhlns=$(<:%.S=$(OBJDIR)/%.lst),-gstabs,--listing-cont-l
 LDFLAGS  = -Wl,-Map=$(TARGET).map,--cref
 LDFLAGS += -Wl,--relax
 LDFLAGS += -Wl,--gc-sections
+LDFLAGS += -flto
 
 #---------------- Programming Options (avrdude) ----------------
 
