@@ -1,4 +1,6 @@
 #pragma once
+#include <string.h>
+#include <stdbool.h>
 
 typedef size_t usb_size;
 

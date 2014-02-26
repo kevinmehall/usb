@@ -10,13 +10,63 @@
 #pragma once
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+#include <avr/eeprom.h>
+#include <util/delay.h>
 
 #define CPU_TO_LE16(x) x
 
-struct USB_Request_Header;
-typedef struct USB_Request_Header USB_Requst_Header_t;
+/** Like __attribute__(align(2)), but actually works. 
+    From http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=121033
+ */
+#define GCC_FORCE_ALIGN_2  __attribute__((section (".data,\"aw\",@progbits\n.p2align 1;")))
+#define ATTR_ALWAYS_INLINE __attribute__ ((always_inline))
 
-#include "Common.h"
+/// From Atmel: Macros for XMEGA instructions not yet supported by the toolchain
+// Load and Clear 
+#ifdef __GNUC__
+#define LACR16(addr,msk) \
+	__asm__ __volatile__ ( \
+	"ldi r16, %1" "\n\t" \
+	".dc.w 0x9306" "\n\t"\
+	::"z" (addr), "M" (msk):"r16")
+#else
+	#define LACR16(addr,msk) __lac((unsigned char)msk,(unsigned char*)addr)
+#endif
+ 
+// Load and Set
+#ifdef __GNUC__
+#define LASR16(addr,msk) \
+	__asm__ __volatile__ ( \
+	"ldi r16, %1" "\n\t" \
+	".dc.w 0x9305" "\n\t"\
+	::"z" (addr), "M" (msk):"r16")
+#else
+#define LASR16(addr,msk) __las((unsigned char)msk,(unsigned char*)addr)
+#endif
+
+// Exchange
+#ifdef __GNUC__
+#define XCHR16(addr,msk) \
+	__asm__ __volatile__ ( \
+	"ldi r16, %1" "\n\t" \
+	".dc.w 0x9304" "\n\t"\
+	::"z" (addr), "M" (msk):"r16")
+#else
+#define XCHR16(addr,msk) __xch(msk,addr)
+#endif
+
+// Load and toggle
+#ifdef __GNUC__
+#define LATR16(addr,msk) \
+	__asm__ __volatile__ ( \
+	"ldi r16, %1" "\n\t" \
+	".dc.w 0x9307" "\n\t"\
+	::"z" (addr), "M" (msk):"r16")
+#else
+#define LATR16(addr,msk) __lat(msk,addr)
+#endif
 
 #ifndef USB_NUM_EP
 	#define USB_NUM_EP 0
@@ -34,7 +84,7 @@ typedef union USB_EP_pair{
 		};
 		USB_EP_t ep[2];
 	};
-} ATTR_PACKED USB_EP_pair_t;
+} __attribute__((packed)) USB_EP_pair_t;
 
 extern uint8_t ep0_buf_in[USB_EP0_SIZE];
 extern uint8_t ep0_buf_out[USB_EP0_SIZE];

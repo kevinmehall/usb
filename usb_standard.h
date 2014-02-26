@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Common.h"
-
 // Device -> host
 #define USB_IN 0x80
 // Host -> device
@@ -26,7 +24,7 @@ typedef struct  {
 	uint16_t wValue;
 	uint16_t wIndex;
 	uint16_t wLength;
-} ATTR_PACKED USB_SetupPacket;
+} __attribute__ ((packed)) USB_SetupPacket;
 
 // Standard requests
 enum {
@@ -104,7 +102,7 @@ typedef enum {
 typedef struct {
 	uint8_t bLength; 
 	uint8_t bDescriptorType;
-} ATTR_PACKED USB_DescriptorHeader;
+} __attribute__ ((packed)) USB_DescriptorHeader;
 
 typedef struct {
 	uint8_t bLength; 
@@ -121,7 +119,7 @@ typedef struct {
 	uint8_t iProduct;
 	uint8_t iSerialNumber;
 	uint8_t bNumConfigurations;
-} ATTR_PACKED USB_DeviceDescriptor;
+} __attribute__ ((packed)) USB_DeviceDescriptor;
 
 typedef struct {
 	uint8_t bLength; 
@@ -131,7 +129,7 @@ typedef struct {
 	uint8_t bMaxPacketSize0;
 	uint8_t bNumConfigurations;
 	uint8_t bReserved;
-} ATTR_PACKED USB_DeviceQualifierDescriptor;
+} __attribute__ ((packed)) USB_DeviceQualifierDescriptor;
 
 typedef struct {
 	uint8_t bLength; 
@@ -142,7 +140,7 @@ typedef struct {
 	uint8_t iConfiguration; 
 	uint8_t bmAttributes;
 	uint8_t bMaxPower;
-} ATTR_PACKED USB_ConfigurationDescriptor;
+} __attribute__ ((packed)) USB_ConfigurationDescriptor;
 
 typedef struct {
 	uint8_t bLength; 
@@ -154,7 +152,7 @@ typedef struct {
 	uint8_t bInterfaceSubClass; 
 	uint8_t bInterfaceProtocol; 
 	uint8_t iInterface;
-} ATTR_PACKED USB_InterfaceDescriptor;
+} __attribute__ ((packed)) USB_InterfaceDescriptor;
 
 typedef struct {
 	uint8_t bLength; 
@@ -165,7 +163,7 @@ typedef struct {
 	uint8_t bFunctionSubClass; 
 	uint8_t bFunctionProtocol; 
 	uint8_t iFunction;
-} ATTR_PACKED USB_InterfaceAssociationDescriptor;
+} __attribute__ ((packed)) USB_InterfaceAssociationDescriptor;
 
 typedef struct {
 	uint8_t bLength;
@@ -174,10 +172,10 @@ typedef struct {
 	uint8_t bmAttributes;
 	uint16_t wMaxPacketSize;
 	uint8_t bInterval;
-} ATTR_PACKED USB_EndpointDescriptor;
+} __attribute__ ((packed)) USB_EndpointDescriptor;
 
 typedef struct {
 	uint8_t bLength;
 	uint8_t bDescriptorType;
 	__CHAR16_TYPE__ bString[];
-} ATTR_PACKED USB_StringDescriptor;
+} __attribute__ ((packed)) USB_StringDescriptor;
