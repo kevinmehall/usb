@@ -22,17 +22,17 @@ void usb_handle_setup(void){
 			case USB_REQ_GetStatus:
 				ep0_buf_in[0] = 0;
 				ep0_buf_in[1] = 0;
-				USB_ep0_send(2);
-				return USB_ep0_enableOut();
+				usb_ep0_in(2);
+				return usb_ep0_out();
 
 			case USB_REQ_ClearFeature:
 			case USB_REQ_SetFeature:
-				USB_ep0_send(0);
-				return USB_ep0_enableOut();
+				usb_ep0_in(0);
+				return usb_ep0_out();
 
 			case USB_REQ_SetAddress:
-				USB_ep0_send(0);
-				return USB_ep0_enableOut();
+				usb_ep0_in(0);
+				return usb_ep0_out();
 
 			case USB_REQ_GetDescriptor: {
 				uint8_t type = (usb_setup.wValue >> 8);
@@ -44,38 +44,38 @@ void usb_handle_setup(void){
 					if (size > usb_setup.wLength) {
 						size = usb_setup.wLength;
 					}
-					USB_ep_in_start(0x80, descriptor, size);
-					return USB_ep0_enableOut();
+					usb_ep_start_in(0x80, descriptor, size, true);
+					return usb_ep0_out();
 				} else {
-					return USB_ep0_stall();
+					return usb_ep0_stall();
 				}
 			}
 			case USB_REQ_GetConfiguration:
 				ep0_buf_in[0] = USB_Device_ConfigurationNumber;
-				USB_ep0_send(1);
-				return USB_ep0_enableOut();
+				usb_ep0_in(1);
+				return usb_ep0_out();
 
 			case USB_REQ_SetConfiguration:
 				if ((uint8_t)usb_setup.wValue <= 1) {
-					USB_ep0_send(0);
+					usb_ep0_in(0);
 					USB_Device_ConfigurationNumber = (uint8_t)(usb_setup.wValue);
-					return USB_ep0_enableOut();
+					return usb_ep0_out();
 				} else {
-					return USB_ep0_stall();
+					return usb_ep0_stall();
 				}
 
 			case USB_REQ_SetInterface:
 				if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
 					&& usb_interface_config[usb_setup.wIndex].cb_set_interface
 					&& usb_interface_config[usb_setup.wIndex].cb_set_interface(usb_setup.wValue)){
-					USB_ep0_send(0);
-					return USB_ep0_enableOut();
+					usb_ep0_in(0);
+					return usb_ep0_out();
 				} else {
-					return USB_ep0_stall();
+					return usb_ep0_stall();
 				}
 
 			default:
-				return USB_ep0_stall();
+				return usb_ep0_stall();
 		}
 	}
 
@@ -84,12 +84,12 @@ void usb_handle_setup(void){
 			&& usb_interface_config[usb_setup.wIndex].cb_control_setup) {
 			usb_interface_config[usb_setup.wIndex].cb_control_setup();
 		} else {
-			return USB_ep0_stall();
+			return usb_ep0_stall();
 		}
 	} else if (usb_device_config.cb_control_setup) {
 		return usb_device_config.cb_control_setup();
 	} else {
-		return USB_ep0_stall();
+		return usb_ep0_stall();
 	}
 }
 
@@ -101,7 +101,7 @@ void usb_handle_control_out_complete(void) {
 			&& usb_interface_config[usb_setup.wIndex].cb_control_out_complete) {
 			usb_interface_config[usb_setup.wIndex].cb_control_out_complete();
 		} else {
-			return USB_ep0_stall();
+			return usb_ep0_stall();
 		}
 	} else if (usb_device_config.cb_control_out_complete) {
 		usb_device_config.cb_control_out_complete();
@@ -112,7 +112,7 @@ void usb_handle_control_in_complete(void) {
 	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD) {
 		switch (usb_setup.bRequest){
 			case USB_REQ_SetAddress:
-				USB.ADDR = (usb_setup.wValue & 0x7F);
+				usb_set_address(usb_setup.wValue & 0x7F);
 				return;
 		}
 	} else if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
@@ -120,7 +120,7 @@ void usb_handle_control_in_complete(void) {
 			&& usb_interface_config[usb_setup.wIndex].cb_control_in_complete) {
 			usb_interface_config[usb_setup.wIndex].cb_control_in_complete();
 		} else {
-			return USB_ep0_stall();
+			return usb_ep0_stall();
 		}
 	} else if (usb_device_config.cb_control_in_complete) {
 		usb_device_config.cb_control_in_complete();

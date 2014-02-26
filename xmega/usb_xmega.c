@@ -14,7 +14,7 @@
 
 USB_EP_pair_t endpoints[USB_NUM_EP+1] GCC_FORCE_ALIGN_2;
 
-void USB_Init(){
+void usb_init(){
 	//uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();
 	//GlobalInterruptDisable();
 
@@ -25,10 +25,10 @@ void USB_Init(){
 
 	//SetGlobalInterruptMask(CurrentGlobalInt);
 
-	USB_ResetInterface();	
+	usb_reset();
 }
 
-void USB_ResetInterface(){
+void usb_reset(){
 
 	//if (USB_Options & USB_DEVICE_OPT_LOWSPEED)
 	//  CLK.USBCTRL = ((((F_USB / 6000000) - 1) << CLK_USBPSDIV_gp) | CLK_USBSRC_RC32M_gc | CLK_USBSEN_bm);
@@ -45,11 +45,13 @@ void USB_ResetInterface(){
 	endpoints[0].in.DATAPTR = (unsigned) &ep0_buf_in;
 	
 	USB.CTRLA = USB_ENABLE_bm | USB_SPEED_bm | (USB_NUM_EP+1);
-	
-	USB_Attach();
 }
 
-const uint8_t* USB_ep0_from_progmem(const uint8_t* addr, uint16_t size) {
+void usb_set_address(uint8_t addr) {
+	USB.ADDR = addr;
+}
+
+const uint8_t* usb_ep0_from_progmem(const uint8_t* addr, uint16_t size) {
 	uint8_t *buf = ep0_buf_in;
 	uint16_t remaining = size;
 	NVM.CMD = NVM_CMD_NO_OPERATION_gc;
@@ -59,7 +61,91 @@ const uint8_t* USB_ep0_from_progmem(const uint8_t* addr, uint16_t size) {
 	return ep0_buf_in;
 }
 
-void USB_ConfigureClock(){
+#define _USB_EP(epaddr) \
+	USB_EP_pair_t* pair = &endpoints[(epaddr & 0x3F)]; \
+	USB_EP_t* e __attribute__ ((unused)) = &pair->ep[!!(epaddr&0x80)]; \
+
+inline void usb_ep_enable(uint8_t ep, uint8_t type, usb_size bufsize){
+	_USB_EP(ep);
+	e->STATUS = USB_EP_BUSNACK0_bm;
+	e->CTRL = type | USB_EP_size_to_gc(bufsize);
+}
+
+inline void usb_ep_disable(uint8_t ep) {
+	_USB_EP(ep);
+	e->CTRL = 0;
+}
+
+inline void usb_ep_reset(uint8_t ep){
+	_USB_EP(ep);
+	e->STATUS = USB_EP_BUSNACK0_bm;
+}
+
+inline usb_bank usb_ep_start_out(uint8_t ep, uint8_t* data, usb_size len) {
+	_USB_EP(ep);
+	e->DATAPTR = (unsigned) data;
+	LACR16(&(e->STATUS), USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm);
+	return 0;
+}
+
+inline usb_bank usb_ep_start_in(uint8_t ep, const uint8_t* data, usb_size size, bool zlp) {
+	_USB_EP(ep);
+	e->DATAPTR = (unsigned) data;
+	e->CNT = size | (zlp << 15);
+	LACR16(&(e->STATUS), USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm);
+	return 0;
+}
+
+inline bool usb_ep_ready(uint8_t ep) {
+	_USB_EP(ep);
+	return !(e->STATUS & (USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm));
+}
+
+inline bool usb_ep_empty(uint8_t ep) {
+	_USB_EP(ep);
+	return !(e->STATUS & (USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm));
+}
+
+inline bool usb_ep_pending(uint8_t ep) {
+	_USB_EP(ep);
+	return e->STATUS & USB_EP_TRNCOMPL0_bm;
+}
+
+inline void usb_ep_handled(uint8_t ep) {
+	_USB_EP(ep);
+	LACR16(&(e->STATUS), USB_EP_TRNCOMPL0_bm);
+}
+
+inline uint16_t usb_ep_out_length(uint8_t ep){
+	_USB_EP(ep);
+	return e->CNT;
+}
+
+inline void usb_detach(void) ATTR_ALWAYS_INLINE;
+inline void usb_detach(void) {
+	USB.CTRLB &= ~USB_ATTACH_bm;
+}
+
+inline void usb_attach(void) ATTR_ALWAYS_INLINE;
+inline void usb_attach(void) {
+	USB.CTRLB |= USB_ATTACH_bm;
+}
+
+/// Enable the OUT stage on the default control pipe.
+inline void usb_ep0_out(void) {
+	LACR16(&endpoints[0].out.STATUS, USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
+}
+
+inline void usb_ep0_in(uint8_t size){
+	usb_ep_start_in(0x80, ep0_buf_in, size, false);
+}
+
+inline void usb_ep0_stall(void) {
+	endpoints[0].out.CTRL |= USB_EP_STALL_bm;
+	endpoints[0].in.CTRL  |= USB_EP_STALL_bm;
+}
+
+void usb_configure_clock() {
 	// Configure DFLL for 48MHz, calibrated by USB SOF
 	OSC.DFLLCTRL = OSC_RC32MCREF_USBSOF_gc;
 	NVM.CMD  = NVM_CMD_READ_CALIB_ROW_gc;
@@ -98,7 +184,7 @@ ISR(USB_BUSEVENT_vect){
 		USB.INTFLAGSACLR = USB_SUSPENDIF_bm | USB_RESUMEIF_bm | USB_RSTIF_bm;
 		if (USB.STATUS & USB_BUSRST_bm){
 			USB.STATUS &= ~USB_BUSRST_bm;
-			USB_Init();
+			usb_reset();
 		}
 	}
 }
@@ -115,13 +201,13 @@ ISR(USB_TRNCOMPL_vect){
 		memcpy(&usb_setup, ep0_buf_out, sizeof(usb_setup));
 		usb_handle_setup();
 	}else if(status & USB_EP_TRNCOMPL0_bm){
-		USB_ep_clear_done(0);
 		usb_handle_control_out_complete();
+		usb_ep_handled(0);
 	}
 
 	if (endpoints[0].in.STATUS & USB_EP_TRNCOMPL0_bm) {
-		USB_ep_clear_done(0x80);
 		usb_handle_control_in_complete();
+		usb_ep_handled(0x80);
 	}
 }
 

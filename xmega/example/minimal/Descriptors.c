@@ -118,6 +118,6 @@ uint16_t usb_cb_get_descriptor(uint8_t type, uint8_t index, const uint8_t** ptr)
 			break;
 	}
 
-	*ptr = USB_ep0_from_progmem(address, size);
+	*ptr = usb_ep0_from_progmem(address, size);
 	return size;
 }

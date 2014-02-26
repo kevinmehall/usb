@@ -3,6 +3,8 @@
 #include <stdbool.h>
 
 typedef size_t usb_size;
+typedef uint8_t usb_ep;
+typedef uint8_t usb_bank;
 
 typedef struct {
 	usb_size ep0_size;
