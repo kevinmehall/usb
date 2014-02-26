@@ -12,9 +12,9 @@
 #define DEFINE_EVENT_ALIASES
 #include "usb.h"
 
-uint8_t ep0_buf_in[USB_EP0SIZE];
-uint8_t ep0_buf_out[USB_EP0SIZE];
-USB_EP_pair_t endpoints[USB_MAXEP+1] GCC_FORCE_ALIGN_2;
+uint8_t ep0_buf_in[USB_EP0_SIZE];
+uint8_t ep0_buf_out[USB_EP0_SIZE];
+USB_EP_pair_t endpoints[USB_NUM_EP+1] GCC_FORCE_ALIGN_2;
 
 
 volatile uint8_t USB_DeviceState;
@@ -44,13 +44,13 @@ void USB_ResetInterface(){
 	USB.ADDR = 0;
 	
 	endpoints[0].out.STATUS = 0;
-	endpoints[0].out.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0SIZE);
+	endpoints[0].out.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0_SIZE);
 	endpoints[0].out.DATAPTR = (unsigned) &ep0_buf_out;
 	endpoints[0].in.STATUS = USB_EP_BUSNACK0_bm;
-	endpoints[0].in.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0SIZE);
+	endpoints[0].in.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0_SIZE);
 	endpoints[0].in.DATAPTR = (unsigned) &ep0_buf_in;
 	
-	USB.CTRLA = USB_ENABLE_bm | USB_SPEED_bm | USB_MAXEP;
+	USB.CTRLA = USB_ENABLE_bm | USB_SPEED_bm | (USB_NUM_EP+1);
 	
 	USB_Attach();
 }

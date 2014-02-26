@@ -17,14 +17,13 @@ struct USB_Request_Header;
 typedef struct USB_Request_Header USB_Requst_Header_t;
 
 #include "Common.h"
-#include "Events.h"
 
-#ifndef USB_MAXEP
-	#define USB_MAXEP 1
+#ifndef USB_NUM_EP
+	#define USB_NUM_EP 0
 #endif
 
-#ifndef USB_EP0SIZE
-	#define EP0SIZE 64
+#ifndef USB_EP0_SIZE
+	#define USB_EP0_SIZE 64
 #endif
 
 typedef union USB_EP_pair{
@@ -37,9 +36,9 @@ typedef union USB_EP_pair{
 	};
 } ATTR_PACKED USB_EP_pair_t;
 
-extern uint8_t ep0_buf_in[USB_EP0SIZE];
-extern uint8_t ep0_buf_out[USB_EP0SIZE];
-extern USB_EP_pair_t endpoints[USB_MAXEP+1];
+extern uint8_t ep0_buf_in[USB_EP0_SIZE];
+extern uint8_t ep0_buf_out[USB_EP0_SIZE];
+extern USB_EP_pair_t endpoints[USB_NUM_EP+1];
 
 /** String descriptor index for the device's unique serial number string descriptor within the device.
  *  This unique serial number is used by the host to associate resources to the device (such as drivers or COM port

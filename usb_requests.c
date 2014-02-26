@@ -34,7 +34,7 @@ inline void USB_handleSetConfiguration(void){
 	USB_ep0_send(0);
 	USB_Device_ConfigurationNumber = (uint8_t)(usb_setup.wValue);
 
-	EVENT_USB_Device_ConfigurationChanged(USB_Device_ConfigurationNumber);
+	//EVENT_USB_Device_ConfigurationChanged(USB_Device_ConfigurationNumber);
 	return USB_ep0_enableOut();
 }
 
@@ -62,7 +62,8 @@ void usb_handle_setup(void){
 			case USB_REQ_SetConfiguration:
 				return USB_handleSetConfiguration();
 			case USB_REQ_SetInterface:
-				if (EVENT_USB_Device_SetInterface(usb_setup.wIndex, usb_setup.wValue)){
+				if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
+					&& usb_interface_config[usb_setup.wIndex].cb_set_interface(usb_setup.wValue)){
 					USB_ep0_send(0);
 					return USB_ep0_enableOut();
 				} else {
@@ -73,7 +74,11 @@ void usb_handle_setup(void){
 		}
 	}
 	
-	return EVENT_USB_Device_ControlRequest(&usb_setup);
+	if (usb_device_config.cb_control_setup) {
+		return usb_device_config.cb_control_setup();
+	} else {
+		return USB_ep0_stall();
+	}
 }
 
 void usb_handle_control_out_complete(void) {
