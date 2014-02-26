@@ -202,12 +202,22 @@ ISR(USB_TRNCOMPL_vect){
 		usb_handle_setup();
 	}else if(status & USB_EP_TRNCOMPL0_bm){
 		usb_handle_control_out_complete();
-		usb_ep_handled(0);
 	}
 
 	if (endpoints[0].in.STATUS & USB_EP_TRNCOMPL0_bm) {
 		usb_handle_control_in_complete();
-		usb_ep_handled(0x80);
+	}
+
+	for (int i=0; i<ARR_LEN(usb_in_endpoint_callbacks); i++) {
+		if (usb_in_endpoint_callbacks[i] && usb_ep_pending(USB_IN | i)) {
+			usb_in_endpoint_callbacks[i]();
+		}
+	}
+
+	for (int i=0; i<ARR_LEN(usb_out_endpoint_callbacks); i++) {
+		if (usb_out_endpoint_callbacks[i] && usb_ep_pending(i)) {
+			usb_out_endpoint_callbacks[i]();
+		}
 	}
 }
 
