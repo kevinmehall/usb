@@ -12,24 +12,6 @@
 
 USB_SetupPacket usb_setup;
 
-inline void USB_handleGetDescriptor(void){
-	uint8_t type = (usb_setup.wValue >> 8);
-	uint8_t index = (usb_setup.wValue & 0xFF);
-
-	const uint8_t* descriptor = 0;
-	uint16_t size = usb_cb_get_descriptor(type, index, &descriptor);
-	
-	if (size && descriptor){
-		if (size > usb_setup.wLength) {
-			size =usb_setup.wLength;
-		}
-		USB_ep_in_start(0x80, descriptor, size);
-		return USB_ep0_enableOut();
-	} else {
-		return USB_ep0_stall();
-	}
-}
-
 void usb_handle_setup(void){
 	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){
 		switch (usb_setup.bRequest){
@@ -45,8 +27,22 @@ void usb_handle_setup(void){
 			case USB_REQ_SetAddress:
 				USB_ep0_enableOut();
 				return USB_ep0_send(0);
-			case USB_REQ_GetDescriptor:
-				return USB_handleGetDescriptor();
+			case USB_REQ_GetDescriptor: {
+				uint8_t type = (usb_setup.wValue >> 8);
+				uint8_t index = (usb_setup.wValue & 0xFF);
+				const uint8_t* descriptor = 0;
+				uint16_t size = usb_cb_get_descriptor(type, index, &descriptor);
+
+				if (size && descriptor){
+					if (size > usb_setup.wLength) {
+						size = usb_setup.wLength;
+					}
+					USB_ep_in_start(0x80, descriptor, size);
+					return USB_ep0_enableOut();
+				} else {
+					return USB_ep0_stall();
+				}
+			}
 			case USB_REQ_GetConfiguration:
 				ep0_buf_in[0] = USB_Device_ConfigurationNumber;
 				USB_ep0_send(1);
