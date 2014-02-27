@@ -94,10 +94,10 @@ typedef enum {
 #define ENDPOINT_USAGE_FEEDBACK (1 << 4)
 #define ENDPOINT_USAGE_IMPLICIT_FEEDBACK (2 << 4)
 
-#define EP_TYPE_CONTROL 0x00
-#define EP_TYPE_ISOCHRONOUS 0x01
-#define EP_TYPE_BULK 0x02
-#define EP_TYPE_INTERRUPT 0x03
+#define USB_EP_TYPE_CONTROL 0x00
+#define USB_EP_TYPE_ISOCHRONOUS 0x01
+#define USB_EP_TYPE_BULK 0x02
+#define USB_EP_TYPE_INTERRUPT 0x03
 
 typedef struct {
 	uint8_t bLength; 

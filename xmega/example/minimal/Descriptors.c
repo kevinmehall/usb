@@ -56,7 +56,7 @@ const ConfigDesc PROGMEM configuration_descriptor = {
 		.bLength = sizeof(USB_EndpointDescriptor),
 		.bDescriptorType = USB_DTYPE_Endpoint,
 		.bEndpointAddress = 0x81,
-		.bmAttributes = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+		.bmAttributes = (USB_EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 		.wMaxPacketSize = 64,
 		.bInterval = 0x00
 	},
@@ -64,7 +64,7 @@ const ConfigDesc PROGMEM configuration_descriptor = {
 		.bLength = sizeof(USB_EndpointDescriptor),
 		.bDescriptorType = USB_DTYPE_Endpoint,
 		.bEndpointAddress = 0x2,
-		.bmAttributes = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+		.bmAttributes = (USB_EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 		.wMaxPacketSize = 64,
 		.bInterval = 0x00
 	},
