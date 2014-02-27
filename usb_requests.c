@@ -1,12 +1,3 @@
-// Minimal USB Stack for ATxmega32a4u and related
-// http://nonolithlabs.com
-// (C) 2011 Kevin Mehall (Nonolith Labs) <km@kevinmehall.net>
-//
-// Heavily borrows from LUFA
-// Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
-//
-// Licensed under the terms of the GNU GPLv3+
-
 #include "usb.h"
 
 USB_SetupPacket usb_setup;
