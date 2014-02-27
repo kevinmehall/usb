@@ -5,14 +5,6 @@
 // Your usb_config.h
 #include "usb_config.h"
 
-#ifndef USB_NUM_EP
-	#define USB_NUM_EP 0
-#endif
-
-#ifndef USB_EP0_SIZE
-	#define USB_EP0_SIZE 64
-#endif
-
 extern USB_SetupPacket usb_setup;
 extern uint8_t ep0_buf_in[USB_EP0_SIZE];
 extern uint8_t ep0_buf_out[USB_EP0_SIZE];

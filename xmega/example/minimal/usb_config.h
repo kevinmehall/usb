@@ -1,6 +1,9 @@
 #pragma once
 #include "usb_config_defs.h"
 
+#define USB_NUM_EP 0
+#define USB_EP0_SIZE 64
+
 const static USB_Device usb_device_config = {
 	.cb_reset = NULL,
 	.cb_control_setup = NULL,
