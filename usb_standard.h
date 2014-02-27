@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 // Device -> host
 #define USB_IN 0x80
 // Host -> device
