@@ -1,5 +1,5 @@
 #include <avr/pgmspace.h>
-#include "usb.h"
+#include "xmega/usb_xmega.h"
 
 const USB_DeviceDescriptor PROGMEM device_descriptor = {
 	.bLength = sizeof(USB_DeviceDescriptor),

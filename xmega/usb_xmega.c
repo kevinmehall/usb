@@ -9,8 +9,9 @@
 
 #include <avr/io.h>
 
-#define DEFINE_EVENT_ALIASES
 #include "usb.h"
+#include "xmega/usb_xmega.h"
+#include "xmega/usb_xmega_internal.h"
 
 USB_EP_pair_t endpoints[USB_NUM_EP+1] GCC_FORCE_ALIGN_2;
 
@@ -185,6 +186,9 @@ ISR(USB_BUSEVENT_vect){
 		if (USB.STATUS & USB_BUSRST_bm){
 			USB.STATUS &= ~USB_BUSRST_bm;
 			usb_reset();
+			if (usb_device_config.cb_reset) {
+				usb_device_config.cb_reset();
+			}
 		}
 	}
 }

@@ -5,7 +5,8 @@
 // Licensed under the terms of the GNU GPLv3+
 
 #include <avr/io.h>
-#include "usb.h"
+#include <avr/interrupt.h>
+#include "xmega/usb_xmega.h"
 
 int main(void){
 	PORTE.DIRSET = (1<<0) | (1<<1);
