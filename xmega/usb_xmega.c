@@ -137,6 +137,9 @@ inline void usb_ep0_stall(void) {
 	endpoints[0].in.CTRL  |= USB_EP_STALL_bm;
 }
 
+void usb_set_speed(USB_Speed speed) { }
+USB_Speed usb_get_speed() { return USB_SPEED_FULL; }
+
 void usb_configure_clock() {
 	// Configure DFLL for 48MHz, calibrated by USB SOF
 	OSC.DFLLCTRL = OSC_RC32MCREF_USBSOF_gc;

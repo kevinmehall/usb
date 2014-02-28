@@ -55,8 +55,6 @@ void usb_init() {
 	/* set OTG transcever in proper state, device is present
 	on the port(CCS=1), port enable/disable status change(PES=1). */
 	LPC_USB->OTGSC = (1<<3) | (1<<0) /*| (1<<16)| (1<<24)| (1<<25)| (1<<26)| (1<<27)| (1<<28)| (1<<29)| (1<<30)*/;
-	/* force full speed */
-	LPC_USB->PORTSC1_D |= (1<<24);
 
 	NVIC_SetPriority(USB0_IRQn, ((0x04<<3)|0x03));
 	NVIC_EnableIRQ(USB0_IRQn); //  enable USB0 interrrupts
@@ -250,11 +248,17 @@ void usb_ep_handled(usb_ep ep) {
 	ep_TD[ EPAdr(ep) ].total_bytes |= TD_R_HANDLED;
 }
 
-#if 0
-usb_speed usb_get_speed() {
+void usb_set_speed(USB_Speed speed) {
+	if (speed >= USB_SPEED_HIGH) {
+		LPC_USB->PORTSC1_D &= ~(1<<24);
+	} else {
+		LPC_USB->PORTSC1_D |= (1<<24);
+	}
+}
+
+USB_Speed usb_get_speed() {
 	return (LPC_USB->PORTSC1_D & (1<<9))?USB_SPEED_HIGH:USB_SPEED_FULL;
 }
-#endif
 
 void USB0_IRQHandler (void) {
 	// Device Status Interrupt

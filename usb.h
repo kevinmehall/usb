@@ -81,6 +81,12 @@ void usb_ep0_out(void);
 /// Stall endpoint 0
 void usb_ep0_stall(void);
 
+/// Force the maximum speed. Call before usb_attach()
+void usb_set_speed(USB_Speed speed);
+
+/// Gets the currently-connected speed
+USB_Speed usb_get_speed(void);
+
 /// Callbacks
 uint16_t usb_cb_get_descriptor(uint8_t type, uint8_t index, const uint8_t** descriptor_ptr);
 

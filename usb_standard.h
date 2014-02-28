@@ -7,6 +7,12 @@
 // Host -> device
 #define USB_OUT 0
 
+typedef enum {
+	USB_SPEED_LOW,
+	USB_SPEED_FULL,
+	USB_SPEED_HIGH,
+} USB_Speed;
+
 #define USB_REQTYPE_DIRECTION_MASK 0x80
 #define USB_REQTYPE_TYPE_MASK 0x60
 #define USB_REQTYPE_RECIPIENT_MASK 0x1F
