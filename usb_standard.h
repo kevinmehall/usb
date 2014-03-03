@@ -187,3 +187,21 @@ typedef struct {
 	uint8_t bDescriptorType;
 	__CHAR16_TYPE__ bString[];
 } __attribute__ ((packed)) USB_StringDescriptor;
+
+/// Microsoft WCID descriptor
+typedef struct {
+	uint8_t bFirstInterfaceNumber;
+	uint8_t reserved1;
+	uint8_t compatibleID[8];
+	uint8_t subCompatibleID[8];
+	uint8_t reserved2[6];
+} __attribute__((packed)) USB_MicrosoftCompatibleDescriptor_Interface;
+
+typedef struct {
+	uint32_t dwLength;
+	uint16_t bcdVersion;
+	uint16_t wIndex;
+	uint8_t bCount;
+	uint8_t reserved[7];
+	USB_MicrosoftCompatibleDescriptor_Interface interfaces[];
+} __attribute__((packed)) USB_MicrosoftCompatibleDescriptor;

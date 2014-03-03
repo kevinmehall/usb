@@ -87,6 +87,11 @@ void usb_set_speed(USB_Speed speed);
 /// Gets the currently-connected speed
 USB_Speed usb_get_speed(void);
 
+/// Handle a vendor request for a Microsoft WCID compatible descriptor.
+/// bmRequestType is vendor/device, and bRequest is user-defined in the string descriptor, so 
+/// the callback cb_control_setup must dispatch the request to this function.
+void usb_handle_msft_compatible(const USB_MicrosoftCompatibleDescriptor* msft_compatible);
+
 /// Callbacks
 uint16_t usb_cb_get_descriptor(uint8_t type, uint8_t index, const uint8_t** descriptor_ptr);
 

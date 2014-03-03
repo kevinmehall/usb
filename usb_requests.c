@@ -117,3 +117,16 @@ void usb_handle_control_in_complete(void) {
 	}
 }
 
+void usb_handle_msft_compatible(const USB_MicrosoftCompatibleDescriptor* msft_compatible) {
+	if (usb_setup.wIndex == 0x0004) {
+		uint16_t len = usb_setup.wLength;
+		if (len > msft_compatible->dwLength) {
+			len = msft_compatible->dwLength;
+		}
+		usb_ep_start_in(0x80, (uint8_t*) msft_compatible, len, false);
+		return usb_ep0_out();
+	} else {
+		return usb_ep0_stall();
+	}
+}
+
