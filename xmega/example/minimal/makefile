@@ -62,7 +62,7 @@ include $(USB_PATH)/xmega/makefile
 # List C source files here. (C dependencies are automatically generated.)
 SRC += $(SRC_USB)
 SRC += xmegatest.c
-SRC += Descriptors.c
+SRC += descriptors.c
 
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC =
