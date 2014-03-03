@@ -5,13 +5,13 @@
 #include "lpc18_43/usb_lpc18_43.h"
 #include "lpc18_43/usb_lpc18_43_internal.h"
 
-DQH_T ep_QH[(USB_NUM_EP+1)*2] __attribute__((aligned(2048)));
-DTD_T ep_TD[(USB_NUM_EP+1)*2] __attribute__((aligned(32)));
+DQH_T ep_QH[USB_MAX_NUM_EP*2] __attribute__((aligned(2048)));
+DTD_T ep_TD[USB_MAX_NUM_EP*2] __attribute__((aligned(32)));
 
 #define LPC_USB LPC_USB0
 
 // To track OUT lengths (see usb_ep_out_length)
-uint32_t ep_read_len[USB_NUM_EP+1];
+uint32_t ep_read_len[USB_MAX_NUM_EP];
 
 static inline uint32_t EPAdr (uint32_t ep) {
 	uint32_t val = (ep & 0x0F) * 2;
@@ -90,16 +90,16 @@ void usb_reset() {
 	LPC_USB->USBCMD_D &= ~0x00FF0000;
 
 	/* Zero out the Endpoint queue heads */
-	memset((void*)ep_QH, 0, (USB_NUM_EP+1) * sizeof(DQH_T));
+	memset((void*)ep_QH, 0, sizeof(ep_QH));
 	/* Zero out the device transfer descriptors */
-	memset((void*)ep_TD, 0, (USB_NUM_EP+1) * sizeof(DTD_T));
+	memset((void*)ep_TD, 0, sizeof(ep_TD));
 	memset((void*)ep_read_len, 0, sizeof(ep_read_len));
 	/* Configure the Endpoint List Address */
 	/* make sure it in on 64 byte boundary !!! */
 	/* init list address */
 	LPC_USB->ENDPOINTLISTADDR = (uint32_t)ep_QH;
 	/* Initialize device queue heads for non ISO endpoint only */
-	for (unsigned i = 0; i < (USB_NUM_EP+1); i++) {
+	for (unsigned i = 0; i < USB_MAX_NUM_EP; i++) {
 		ep_QH[i].next_dTD = (uint32_t)&ep_TD[i];
 	}
 	/* Enable interrupts */
@@ -316,14 +316,13 @@ void USB0_IRQHandler (void) {
 			usb_handle_control_in_complete();
 		}
 
-		for (uint8_t n = 1; n < (USB_NUM_EP+1) / 2; n++) {
-			if (val & (1<<n)) {
+		for (uint8_t n=0; n < usb_num_endpoints; n++) {
+			if (val & (1<<(n+1))) {
 				if (usb_out_endpoint_callbacks[n]) {
 					usb_out_endpoint_callbacks[n]();
 				}
 			}
-			if (val & (1<<(n + 16))) {
-				ep_TD [(n << 1) + 1 ].total_bytes &= (TD_ACTIVE | TD_HALTED);
+			if (val & (1<<(n + 1 + 16))) {
 				if (usb_in_endpoint_callbacks[n]) {
 					usb_in_endpoint_callbacks[n]();
 				}

@@ -55,7 +55,7 @@ void usb_handle_setup(void){
 				}
 
 			case USB_REQ_SetInterface:
-				if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
+				if (usb_setup.wIndex < usb_num_interfaces
 					&& usb_interface_config[usb_setup.wIndex].cb_set_interface
 					&& usb_interface_config[usb_setup.wIndex].cb_set_interface(usb_setup.wValue)){
 					usb_ep0_in(0);
@@ -70,7 +70,7 @@ void usb_handle_setup(void){
 	}
 
 	if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
-		if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
+		if (usb_setup.wIndex < usb_num_interfaces
 			&& usb_interface_config[usb_setup.wIndex].cb_control_setup) {
 			usb_interface_config[usb_setup.wIndex].cb_control_setup();
 		} else {
@@ -87,7 +87,7 @@ void usb_handle_control_out_complete(void) {
 	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD) {
 		// Let the status stage proceed
 	} else if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
-		if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
+		if (usb_setup.wIndex < usb_num_interfaces
 			&& usb_interface_config[usb_setup.wIndex].cb_control_out_complete) {
 			usb_interface_config[usb_setup.wIndex].cb_control_out_complete();
 		} else {
@@ -106,7 +106,7 @@ void usb_handle_control_in_complete(void) {
 				return;
 		}
 	} else if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
-		if (usb_setup.wIndex < ARR_LEN(usb_interface_config)
+		if (usb_setup.wIndex < usb_num_interfaces
 			&& usb_interface_config[usb_setup.wIndex].cb_control_in_complete) {
 			usb_interface_config[usb_setup.wIndex].cb_control_in_complete();
 		} else {

@@ -1,17 +1,13 @@
 #pragma once
 
 #include "usb_standard.h"
-
-// Your usb_config.h
-#include "usb_config.h"
+#include "usb_config_defs.h"
 
 extern USB_SetupPacket usb_setup;
 extern uint8_t ep0_buf_in[USB_EP0_SIZE];
 extern uint8_t ep0_buf_out[USB_EP0_SIZE];
 extern volatile uint8_t USB_DeviceState;
 extern volatile uint8_t USB_Device_ConfigurationNumber;
-
-#define ARR_LEN(x) (sizeof(x)/sizeof(x[0]))
 
 /// Initialize the USB controller
 void usb_init(void);

@@ -8,10 +8,6 @@
 
 #define CPU_TO_LE16(x) x
 
-/** Like __attribute__(align(2)), but actually works. 
-    From http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=121033
- */
-#define GCC_FORCE_ALIGN_2  __attribute__((section (".data,\"aw\",@progbits\n.p2align 1;")))
 #define ATTR_ALWAYS_INLINE __attribute__ ((always_inline))
 
 /// From Atmel: Macros for XMEGA instructions not yet supported by the toolchain
@@ -58,18 +54,6 @@
 #else
 #define LATR16(addr,msk) __lat(msk,addr)
 #endif
-
-typedef union USB_EP_pair{
-	union{
-		struct{
-			USB_EP_t out;
-			USB_EP_t in;
-		};
-		USB_EP_t ep[2];
-	};
-} __attribute__((packed)) USB_EP_pair_t;
-
-extern USB_EP_pair_t endpoints[USB_NUM_EP+1];
 
 #define USB_EP_size_to_gc(x)  ((x <= 8   )?USB_EP_BUFSIZE_8_gc:\
                                (x <= 16  )?USB_EP_BUFSIZE_16_gc:\

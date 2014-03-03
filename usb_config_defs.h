@@ -23,3 +23,14 @@ typedef struct {
 } USB_Interface;
 
 typedef void (*USB_Endpoint_Callback)(void);
+
+#define USB_EP0_SIZE 64
+
+extern const USB_Device usb_device_config;
+
+extern const uint8_t usb_num_interfaces;
+extern const USB_Interface usb_interface_config[];
+
+extern const uint8_t usb_num_endpoints;
+extern const USB_Endpoint_Callback usb_in_endpoint_callbacks[];
+extern const USB_Endpoint_Callback usb_out_endpoint_callbacks[];

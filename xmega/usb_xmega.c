@@ -4,8 +4,6 @@
 #include "xmega/usb_xmega.h"
 #include "xmega/usb_xmega_internal.h"
 
-USB_EP_pair_t endpoints[USB_NUM_EP+1] GCC_FORCE_ALIGN_2;
-
 void usb_init(){
 	//uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();
 	//GlobalInterruptDisable();
@@ -26,17 +24,17 @@ void usb_reset(){
 	//  CLK.USBCTRL = ((((F_USB / 6000000) - 1) << CLK_USBPSDIV_gp) | CLK_USBSRC_RC32M_gc | CLK_USBSEN_bm);
 	//else
 	CLK.USBCTRL = ((((F_USB / 48000000) - 1) << CLK_USBPSDIV_gp) | CLK_USBSRC_RC32M_gc | CLK_USBSEN_bm);
-	USB.EPPTR = (unsigned) &endpoints;
+	USB.EPPTR = (unsigned) &usb_xmega_endpoints;
 	USB.ADDR = 0;
 	
-	endpoints[0].out.STATUS = 0;
-	endpoints[0].out.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0_SIZE);
-	endpoints[0].out.DATAPTR = (unsigned) &ep0_buf_out;
-	endpoints[0].in.STATUS = USB_EP_BUSNACK0_bm;
-	endpoints[0].in.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0_SIZE);
-	endpoints[0].in.DATAPTR = (unsigned) &ep0_buf_in;
+	usb_xmega_endpoints[0].out.STATUS = 0;
+	usb_xmega_endpoints[0].out.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0_SIZE);
+	usb_xmega_endpoints[0].out.DATAPTR = (unsigned) &ep0_buf_out;
+	usb_xmega_endpoints[0].in.STATUS = USB_EP_BUSNACK0_bm;
+	usb_xmega_endpoints[0].in.CTRL = USB_EP_TYPE_CONTROL_gc | USB_EP_size_to_gc(USB_EP0_SIZE);
+	usb_xmega_endpoints[0].in.DATAPTR = (unsigned) &ep0_buf_in;
 	
-	USB.CTRLA = USB_ENABLE_bm | USB_SPEED_bm | (USB_NUM_EP+1);
+	USB.CTRLA = USB_ENABLE_bm | USB_SPEED_bm | (usb_num_endpoints+1);
 }
 
 void usb_set_address(uint8_t addr) {
@@ -54,7 +52,7 @@ const uint8_t* usb_ep0_from_progmem(const uint8_t* addr, uint16_t size) {
 }
 
 #define _USB_EP(epaddr) \
-	USB_EP_pair_t* pair = &endpoints[(epaddr & 0x3F)]; \
+	USB_EP_pair_t* pair = &usb_xmega_endpoints[(epaddr & 0x3F)]; \
 	USB_EP_t* e __attribute__ ((unused)) = &pair->ep[!!(epaddr&0x80)]; \
 
 inline void usb_ep_enable(uint8_t ep, uint8_t type, usb_size bufsize){
@@ -125,7 +123,7 @@ inline void usb_attach(void) {
 
 /// Enable the OUT stage on the default control pipe.
 inline void usb_ep0_out(void) {
-	LACR16(&endpoints[0].out.STATUS, USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
+	LACR16(&usb_xmega_endpoints[0].out.STATUS, USB_EP_SETUP_bm | USB_EP_BUSNACK0_bm | USB_EP_TRNCOMPL0_bm | USB_EP_OVF_bm);
 }
 
 inline void usb_ep0_in(uint8_t size){
@@ -133,8 +131,8 @@ inline void usb_ep0_in(uint8_t size){
 }
 
 inline void usb_ep0_stall(void) {
-	endpoints[0].out.CTRL |= USB_EP_STALL_bm;
-	endpoints[0].in.CTRL  |= USB_EP_STALL_bm;
+	usb_xmega_endpoints[0].out.CTRL |= USB_EP_STALL_bm;
+	usb_xmega_endpoints[0].in.CTRL  |= USB_EP_STALL_bm;
 }
 
 void usb_set_speed(USB_Speed speed) { }
@@ -192,28 +190,28 @@ ISR(USB_TRNCOMPL_vect){
 	USB.INTFLAGSBCLR = USB_SETUPIF_bm | USB_TRNIF_bm;
 
 	// Read once to prevent race condition where SETUP packet is interpreted as OUT
-	uint8_t status = endpoints[0].out.STATUS;
+	uint8_t status = usb_xmega_endpoints[0].out.STATUS;
 	if (status & USB_EP_SETUP_bm){
 		// TODO: race conditions because we can't block a setup packet
-		LACR16(&(endpoints[0].out.STATUS), USB_EP_TRNCOMPL0_bm | USB_EP_SETUP_bm);
+		LACR16(&(usb_xmega_endpoints[0].out.STATUS), USB_EP_TRNCOMPL0_bm | USB_EP_SETUP_bm);
 		memcpy(&usb_setup, ep0_buf_out, sizeof(usb_setup));
 		usb_handle_setup();
 	}else if(status & USB_EP_TRNCOMPL0_bm){
 		usb_handle_control_out_complete();
 	}
 
-	if (endpoints[0].in.STATUS & USB_EP_TRNCOMPL0_bm) {
+	if (usb_xmega_endpoints[0].in.STATUS & USB_EP_TRNCOMPL0_bm) {
 		usb_handle_control_in_complete();
 	}
 
-	for (int i=0; i<ARR_LEN(usb_in_endpoint_callbacks); i++) {
-		if (usb_in_endpoint_callbacks[i] && usb_ep_pending(USB_IN | i)) {
+	for (int i=0; i<usb_num_endpoints; i++) {
+		if (usb_in_endpoint_callbacks[i] && usb_ep_pending(USB_IN | (i+1))) {
 			usb_in_endpoint_callbacks[i]();
 		}
 	}
 
-	for (int i=0; i<ARR_LEN(usb_out_endpoint_callbacks); i++) {
-		if (usb_out_endpoint_callbacks[i] && usb_ep_pending(i)) {
+	for (int i=0; i<usb_num_endpoints; i++) {
+		if (usb_out_endpoint_callbacks[i] && usb_ep_pending(i+1)) {
 			usb_out_endpoint_callbacks[i]();
 		}
 	}
