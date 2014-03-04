@@ -178,9 +178,7 @@ ISR(USB_BUSEVENT_vect){
 		if (USB.STATUS & USB_BUSRST_bm){
 			USB.STATUS &= ~USB_BUSRST_bm;
 			usb_reset();
-			if (usb_device_config.cb_reset) {
-				usb_device_config.cb_reset();
-			}
+			usb_cb_reset();
 		}
 	}
 }
@@ -204,16 +202,6 @@ ISR(USB_TRNCOMPL_vect){
 		usb_handle_control_in_complete();
 	}
 
-	for (int i=0; i<usb_num_endpoints; i++) {
-		if (usb_in_endpoint_callbacks[i] && usb_ep_pending(USB_IN | (i+1))) {
-			usb_in_endpoint_callbacks[i]();
-		}
-	}
-
-	for (int i=0; i<usb_num_endpoints; i++) {
-		if (usb_out_endpoint_callbacks[i] && usb_ep_pending(i+1)) {
-			usb_out_endpoint_callbacks[i]();
-		}
-	}
+	usb_cb_completion();
 }
 

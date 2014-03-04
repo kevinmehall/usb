@@ -55,9 +55,7 @@ void usb_handle_setup(void){
 				}
 
 			case USB_REQ_SetInterface:
-				if (usb_setup.wIndex < usb_num_interfaces
-					&& usb_interface_config[usb_setup.wIndex].cb_set_interface
-					&& usb_interface_config[usb_setup.wIndex].cb_set_interface(usb_setup.wValue)){
+				if (usb_cb_set_interface(usb_setup.wIndex, usb_setup.wValue)) {
 					usb_ep0_in(0);
 					return usb_ep0_out();
 				} else {
@@ -69,32 +67,14 @@ void usb_handle_setup(void){
 		}
 	}
 
-	if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
-		if (usb_setup.wIndex < usb_num_interfaces
-			&& usb_interface_config[usb_setup.wIndex].cb_control_setup) {
-			usb_interface_config[usb_setup.wIndex].cb_control_setup();
-		} else {
-			return usb_ep0_stall();
-		}
-	} else if (usb_device_config.cb_control_setup) {
-		return usb_device_config.cb_control_setup();
-	} else {
-		return usb_ep0_stall();
-	}
+	usb_cb_control_setup();
 }
 
 void usb_handle_control_out_complete(void) {
 	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD) {
 		// Let the status stage proceed
-	} else if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
-		if (usb_setup.wIndex < usb_num_interfaces
-			&& usb_interface_config[usb_setup.wIndex].cb_control_out_complete) {
-			usb_interface_config[usb_setup.wIndex].cb_control_out_complete();
-		} else {
-			return usb_ep0_stall();
-		}
-	} else if (usb_device_config.cb_control_out_complete) {
-		usb_device_config.cb_control_out_complete();
+	} else {
+		usb_cb_control_out_completion();
 	}
 }
 
@@ -105,15 +85,8 @@ void usb_handle_control_in_complete(void) {
 				usb_set_address(usb_setup.wValue & 0x7F);
 				return;
 		}
-	} else if ((usb_setup.bmRequestType & USB_REQTYPE_RECIPIENT_MASK) == USB_RECIPIENT_INTERFACE) {
-		if (usb_setup.wIndex < usb_num_interfaces
-			&& usb_interface_config[usb_setup.wIndex].cb_control_in_complete) {
-			usb_interface_config[usb_setup.wIndex].cb_control_in_complete();
-		} else {
-			return usb_ep0_stall();
-		}
-	} else if (usb_device_config.cb_control_in_complete) {
-		usb_device_config.cb_control_in_complete();
+	} else {
+		usb_cb_control_in_completion();
 	}
 }
 

@@ -1,13 +1,39 @@
 #pragma once
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "usb_standard.h"
-#include "usb_config_defs.h"
+
+#define USB_EP0_SIZE 64
 
 extern USB_SetupPacket usb_setup;
 extern uint8_t ep0_buf_in[USB_EP0_SIZE];
 extern uint8_t ep0_buf_out[USB_EP0_SIZE];
 extern volatile uint8_t USB_DeviceState;
 extern volatile uint8_t USB_Device_ConfigurationNumber;
+
+typedef size_t usb_size;
+typedef uint8_t usb_ep;
+typedef uint8_t usb_bank;
+
+/// Callback on reset
+void usb_cb_reset(void);
+
+/// Callback when a setup packet is received
+void usb_cb_control_setup(void);
+
+/// Callback on a completion interrupt
+void usb_cb_completion(void);
+void usb_cb_control_in_completion(void);
+void usb_cb_control_out_completion(void);
+
+/// Callback for a SET_INTERFACE request
+bool usb_cb_set_interface(uint16_t interface, uint16_t altsetting);
+
+/// Callbck for a GET_DESCRIPTOR request
+uint16_t usb_cb_get_descriptor(uint8_t type, uint8_t index, const uint8_t** descriptor_ptr);
 
 /// Initialize the USB controller
 void usb_init(void);
@@ -88,8 +114,6 @@ USB_Speed usb_get_speed(void);
 /// the callback cb_control_setup must dispatch the request to this function.
 void usb_handle_msft_compatible(const USB_MicrosoftCompatibleDescriptor* msft_compatible);
 
-/// Callbacks
-uint16_t usb_cb_get_descriptor(uint8_t type, uint8_t index, const uint8_t** descriptor_ptr);
 
 /// Internal common methods called by the hardware API
 void usb_handle_setup(void);

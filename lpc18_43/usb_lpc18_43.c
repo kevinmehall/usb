@@ -266,9 +266,7 @@ void USB0_IRQHandler (void) {
 	LPC_USB->USBSTS_D = disr;
 	if (disr & USBSTS_URI) { // Reset
 		usb_reset();
-		if (usb_device_config.cb_reset) {
-			usb_device_config.cb_reset();
-		}
+		usb_cb_reset();
 	}
 
 #if 0
@@ -316,18 +314,15 @@ void USB0_IRQHandler (void) {
 			usb_handle_control_in_complete();
 		}
 
-		for (uint8_t n=0; n < usb_num_endpoints; n++) {
+		for (uint8_t n=1; n < USB_MAX_NUM_EP; n++) {
 			if (val & (1<<(n+1))) {
-				if (usb_out_endpoint_callbacks[n]) {
-					usb_out_endpoint_callbacks[n]();
-				}
 			}
 			if (val & (1<<(n + 1 + 16))) {
-				if (usb_in_endpoint_callbacks[n]) {
-					usb_in_endpoint_callbacks[n]();
-				}
 			}
 		}
+
+		usb_cb_completion();
+
 		LPC_USB->ENDPTNAK = val;
 	}
 }

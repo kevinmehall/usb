@@ -121,3 +121,28 @@ uint16_t usb_cb_get_descriptor(uint8_t type, uint8_t index, const uint8_t** ptr)
 	*ptr = usb_ep0_from_progmem(address, size);
 	return size;
 }
+
+void usb_cb_reset(void) {
+
+}
+
+void usb_cb_completion(void) {
+
+}
+
+void usb_cb_control_setup(void) {
+
+}
+
+void usb_cb_control_in_completion(void) {
+
+}
+
+void usb_cb_control_out_completion(void) {
+
+}
+
+/// Callback for a SET_INTERFACE request
+bool usb_cb_set_interface(uint16_t interface, uint16_t altsetting) {
+	return false;
+}

@@ -20,14 +20,12 @@ typedef union USB_EP_pair{
 } __attribute__((packed)) USB_EP_pair_t;
 
 extern USB_EP_pair_t usb_xmega_endpoints[];
+extern const uint8_t usb_num_endpoints;
 
 /** Like __attribute__(align(2)), but actually works. 
     From http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=121033
  */
 #define GCC_FORCE_ALIGN_2  __attribute__((section (".data,\"aw\",@progbits\n.p2align 1;")))
-
-#define USB_INTERFACES(NUM_INT) \
-	const uint8_t usb_num_interfaces = (NUM_INT);
 
 #define USB_ENDPOINTS(NUM_EP) \
 	const uint8_t usb_num_endpoints = (NUM_EP); \
