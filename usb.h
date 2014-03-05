@@ -29,6 +29,9 @@ void usb_cb_completion(void);
 void usb_cb_control_in_completion(void);
 void usb_cb_control_out_completion(void);
 
+/// Callback for a SET_CONFIGURATION request
+bool usb_cb_set_configuration(uint8_t config);
+
 /// Callback for a SET_INTERFACE request
 bool usb_cb_set_interface(uint16_t interface, uint16_t altsetting);
 

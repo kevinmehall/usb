@@ -3,8 +3,7 @@
 USB_SetupPacket usb_setup;
 uint8_t ep0_buf_in[USB_EP0_SIZE];
 uint8_t ep0_buf_out[USB_EP0_SIZE];
-volatile uint8_t USB_DeviceState;
-volatile uint8_t USB_Device_ConfigurationNumber;
+volatile uint8_t usb_configuration;
 
 void usb_handle_setup(void){
 	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){
@@ -41,14 +40,14 @@ void usb_handle_setup(void){
 				}
 			}
 			case USB_REQ_GetConfiguration:
-				ep0_buf_in[0] = USB_Device_ConfigurationNumber;
+				ep0_buf_in[0] = usb_configuration;
 				usb_ep0_in(1);
 				return usb_ep0_out();
 
 			case USB_REQ_SetConfiguration:
-				if ((uint8_t)usb_setup.wValue <= 1) {
+				if (usb_cb_set_configuration((uint8_t)usb_setup.wValue)) {
 					usb_ep0_in(0);
-					USB_Device_ConfigurationNumber = (uint8_t)(usb_setup.wValue);
+					usb_configuration = (uint8_t)(usb_setup.wValue);
 					return usb_ep0_out();
 				} else {
 					return usb_ep0_stall();
