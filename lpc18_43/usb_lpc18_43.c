@@ -123,7 +123,7 @@ void usb_enable_ep(usb_ep ep, uint8_t type, usb_size pkt_size) {
 
 	if (type != USB_EP_TYPE_ISOCHRONOUS){
 		/* init EP capabilities */
-		ep_QH[num].cap  = QH_MAXP(pkt_size) | QH_IOS | QH_ZLT ;
+		ep_QH[num].cap  = QH_MAXP(pkt_size);
 		/* The next DTD pointer is INVALID */
 		ep_TD[num].next_dTD = 0x01 ;
 	} else{
@@ -131,7 +131,6 @@ void usb_enable_ep(usb_ep ep, uint8_t type, usb_size pkt_size) {
 		ep_QH[num].cap  = QH_MAXP(0x400) | QH_ZLT;
 	}
 
-	// CHECK: enable was a separate step in NXP
 	if (ep & USB_IN){
 		USB_EP_CONFIG(ep) &= ~0xFFFF0000;
 		USB_EP_CONFIG(ep) |= EPCTRL_TX_TYPE(type) | EPCTRL_TXR | EPCTRL_TXE;
