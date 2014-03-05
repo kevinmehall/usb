@@ -102,3 +102,13 @@ void usb_handle_msft_compatible(const USB_MicrosoftCompatibleDescriptor* msft_co
 	}
 }
 
+void* usb_string_to_descriptor(char* str) {
+	USB_StringDescriptor* desc = (((USB_StringDescriptor*)ep0_buf_in));
+	uint16_t len = strlen(str);
+	desc->bLength = USB_STRING_LEN(len);
+	for (int i=0; i<len; i++) {
+		desc->bString[i] = str[i];
+	}
+	return desc;
+}
+

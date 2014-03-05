@@ -117,6 +117,8 @@ USB_Speed usb_get_speed(void);
 /// the callback cb_control_setup must dispatch the request to this function.
 void usb_handle_msft_compatible(const USB_MicrosoftCompatibleDescriptor* msft_compatible);
 
+/// Convert a C string to a string descriptor in the ep0 IN buffer
+void* usb_string_to_descriptor(char* str);
 
 /// Internal common methods called by the hardware API
 void usb_handle_setup(void);
