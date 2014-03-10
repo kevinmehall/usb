@@ -123,13 +123,17 @@ void usb_enable_ep(usb_ep ep, uint8_t type, usb_size pkt_size) {
 
 	if (type != USB_EP_TYPE_ISOCHRONOUS){
 		/* init EP capabilities */
-		ep_QH[num].cap  = QH_MAXP(pkt_size);
+		ep_QH[num].cap  = QH_MAXP(pkt_size) | QH_ZLT;
 		/* The next DTD pointer is INVALID */
 		ep_TD[num].next_dTD = 0x01 ;
+
 	} else{
 		/* init EP capabilities */
 		ep_QH[num].cap  = QH_MAXP(0x400) | QH_ZLT;
 	}
+
+	// So usb_ep_pending returns false
+	ep_TD[num].total_bytes = TD_R_HANDLED;
 
 	if (ep & USB_IN){
 		USB_EP_CONFIG(ep) &= ~0xFFFF0000;
@@ -207,7 +211,7 @@ bool usb_ep_ready(usb_ep ep) {
 	return (pDTD->next_dTD & 1) && ((pDTD->total_bytes & TD_ACTIVE)==0);
 }
 
-bool usb_pending(usb_ep ep) {
+bool usb_ep_pending(usb_ep ep) {
 	return usb_ep_ready(ep) && !(ep_TD[ EPAdr(ep) ].total_bytes & TD_R_HANDLED);
 }
 
@@ -231,7 +235,7 @@ usb_bank usb_ep_start_in(usb_ep ep, const uint8_t* data, usb_size len, bool zlp)
 }
 
 inline void usb_ep0_out(void) {
-	usb_ep_start_out(0x0, ep0_buf_in, sizeof(ep0_buf_in));
+	usb_ep_start_out(0x0, ep0_buf_out, sizeof(ep0_buf_out));
 }
 
 inline void usb_ep0_in(uint8_t size){
