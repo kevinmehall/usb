@@ -226,9 +226,15 @@ usb_size usb_ep_out_length(usb_ep ep) {
 }
 
 usb_bank usb_ep_start_in(usb_ep ep, const uint8_t* data, usb_size len, bool zlp) {
-	USB_ProgDTD(EPAdr(ep), (uint32_t)data, len);
+	unsigned n = EPAdr(ep);
+	USB_ProgDTD(n, (uint32_t)data, len);
+	if (zlp) {
+		ep_QH[n].cap  &= ~QH_ZLT; // ZLT bit is active low
+	} else {
+		ep_QH[n].cap  |= QH_ZLT;
+	}
 	LPC_USB->ENDPTPRIME |= USB_EP_BITMASK(ep);
-	return 0; //TODO: zlp
+	return 0;
 }
 
 inline void usb_ep0_out(void) {
