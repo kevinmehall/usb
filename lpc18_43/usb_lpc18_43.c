@@ -187,14 +187,11 @@ void usb_clr_stall_ep(usb_ep ep) {
 static void USB_ProgDTD(uint32_t Edpt, uint32_t ptrBuff, uint32_t TsfSize) {
 	DTD_T*  pDTD = &ep_TD[Edpt];
 
-	/* Zero out the device transfer descriptors */
-	memset((void*)pDTD, 0, sizeof(DTD_T));
 	/* The next DTD pointer is INVALID */
 	pDTD->next_dTD = 0x01 ;
 
 	/* Length */
-	pDTD->total_bytes = ((TsfSize & 0x7fff) << 16);
-	pDTD->total_bytes |= TD_IOC | TD_ACTIVE;
+	pDTD->total_bytes = ((TsfSize & 0x7fff) << 16) | TD_IOC | TD_ACTIVE;
 
 	pDTD->buffer0 = ptrBuff;
 	pDTD->buffer1 = (ptrBuff + 0x1000) & 0xfffff000;
