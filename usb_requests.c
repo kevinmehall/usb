@@ -106,6 +106,7 @@ void* usb_string_to_descriptor(char* str) {
 	USB_StringDescriptor* desc = (((USB_StringDescriptor*)ep0_buf_in));
 	uint16_t len = strlen(str);
 	desc->bLength = USB_STRING_LEN(len);
+	desc->bDescriptorType = USB_DTYPE_String;
 	for (int i=0; i<len; i++) {
 		desc->bString[i] = str[i];
 	}
