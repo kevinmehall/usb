@@ -1,8 +1,8 @@
 #include "usb.h"
 
 USB_SetupPacket usb_setup;
-uint8_t ep0_buf_in[USB_EP0_SIZE];
-uint8_t ep0_buf_out[USB_EP0_SIZE];
+__attribute__((__aligned__(4))) uint8_t ep0_buf_in[USB_EP0_SIZE];
+__attribute__((__aligned__(4))) uint8_t ep0_buf_out[USB_EP0_SIZE];
 volatile uint8_t usb_configuration;
 
 void usb_handle_setup(void){
@@ -33,7 +33,9 @@ void usb_handle_setup(void){
 					if (size > usb_setup.wLength) {
 						size = usb_setup.wLength;
 					}
-					usb_ep_start_in(0x80, descriptor, size, true);
+
+					memcpy(ep0_buf_in, descriptor, size);
+					usb_ep_start_in(0x80, ep0_buf_in, size, true);
 					return usb_ep0_out();
 				} else {
 					return usb_ep0_stall();
@@ -112,4 +114,3 @@ void* usb_string_to_descriptor(char* str) {
 	}
 	return desc;
 }
-
