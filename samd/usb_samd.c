@@ -2,10 +2,6 @@
 #include "samd/usb_samd.h"
 #include "samd/usb_samd_internal.h"
 
-#include <compiler.h>
-#include <pinmux.h>
-#include <system_interrupt.h>
-
 #define NVM_USB_PAD_TRANSN_POS  45
 #define NVM_USB_PAD_TRANSN_SIZE 5
 #define NVM_USB_PAD_TRANSP_POS  50
@@ -19,31 +15,22 @@
 
 void usb_init(){
 	uint32_t pad_transn, pad_transp, pad_trim;
-	struct system_pinmux_config pin_config;
 
 	PM->APBBMASK.reg |= PM_APBBMASK_USB;
-
-	/* Set up the USB DP/DN pins */
-	system_pinmux_get_config_defaults(&pin_config);
-	pin_config.mux_position = MUX_PA24G_USB_DM;
-	system_pinmux_pin_set_config(PIN_PA24G_USB_DM, &pin_config);
-	pin_config.mux_position = MUX_PA25G_USB_DP;
-	system_pinmux_pin_set_config(PIN_PA25G_USB_DP, &pin_config);
 
 	GCLK->CLKCTRL.reg = GCLK_CLKCTRL_CLKEN |
 			GCLK_CLKCTRL_GEN(USB_GCLK_GEN) |
 			GCLK_CLKCTRL_ID(USB_GCLK_ID);
 
 	/* Reset */
-	USB->DEVICE.CTRLA.bit.SWRST = 1;
+	USB->DEVICE.CTRLA.reg = USB_CTRLA_SWRST;
 	while (USB->DEVICE.SYNCBUSY.bit.SWRST);
 
-	USB->DEVICE.CTRLA.bit.ENABLE = 1;
+	USB->DEVICE.CTRLA.reg = USB_CTRLA_ENABLE | USB_CTRLA_MODE_DEVICE;
 	while (USB->DEVICE.SYNCBUSY.bit.ENABLE);
 
-
 	/* Load Pad Calibration */
-	pad_transn =( *((uint32_t *)(NVMCTRL_OTP4)
+	pad_transn = ( *((uint32_t *)(NVMCTRL_OTP4)
 			+ (NVM_USB_PAD_TRANSN_POS / 32))
 		>> (NVM_USB_PAD_TRANSN_POS % 32))
 		& ((1 << NVM_USB_PAD_TRANSN_SIZE) - 1);
@@ -51,8 +38,6 @@ void usb_init(){
 	if (pad_transn == 0x1F) {
 		pad_transn = 5;
 	}
-
-	USB->DEVICE.PADCAL.bit.TRANSN = pad_transn;
 
 	pad_transp =( *((uint32_t *)(NVMCTRL_OTP4)
 			+ (NVM_USB_PAD_TRANSP_POS / 32))
@@ -63,8 +48,6 @@ void usb_init(){
 		pad_transp = 29;
 	}
 
-	USB->DEVICE.PADCAL.bit.TRANSP = pad_transp;
-
 	pad_trim =( *((uint32_t *)(NVMCTRL_OTP4)
 			+ (NVM_USB_PAD_TRIM_POS / 32))
 			>> (NVM_USB_PAD_TRIM_POS % 32))
@@ -74,10 +57,7 @@ void usb_init(){
 		pad_trim = 3;
 	}
 
-	USB->DEVICE.PADCAL.bit.TRIM = pad_trim;
-
-	/* Set the configuration */
-	USB->DEVICE.CTRLA.bit.MODE = USB_CTRLA_MODE_DEVICE_Val;
+	USB->DEVICE.PADCAL.reg = USB_PADCAL_TRANSN(pad_transn) | USB_PADCAL_TRANSP(pad_transp) | USB_PADCAL_TRIM(pad_trim);
 
 	memset(usb_endpoints, 0, usb_num_endpoints*sizeof(UsbDeviceDescriptor));
 	USB->DEVICE.DESCADD.reg = (uint32_t)(&usb_endpoints[0]);
