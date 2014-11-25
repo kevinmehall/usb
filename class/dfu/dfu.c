@@ -3,6 +3,7 @@
 DFU_State dfu_state = DFU_STATE_dfuIDLE;
 DFU_Status dfu_status = DFU_STATUS_OK;
 uint16_t dfu_poll_timeout;
+uint16_t dfu_block_offset;
 
 void dfu_control_setup() {
 	switch (usb_setup.bRequest) {
@@ -13,12 +14,12 @@ void dfu_control_setup() {
 					usb_ep0_out();
 					return usb_ep0_in(0);
 				} else {
-					uint8_t *buf = dfu_cb_dnload_block(usb_setup.wValue, usb_setup.wLength);
+					dfu_block_offset = 0;
+					dfu_cb_dnload_block(usb_setup.wValue, usb_setup.wLength);
 
-					if (buf) {
+					if (dfu_state != DFU_STATE_dfuERROR) {
 						dfu_state = DFU_STATE_dfuDNBUSY;
-						usb_ep_start_out(0, buf, usb_setup.wLength);
-						return usb_ep0_in(0);
+						return usb_ep0_out();
 					}
 				}
 			} else {
@@ -72,13 +73,25 @@ void dfu_reset() {
 
 void dfu_control_out_completion() {
 	switch (usb_setup.bRequest) {
-		case DFU_DNLOAD:
-			dfu_poll_timeout = dfu_cb_dnload_block_completed(usb_setup.wValue, usb_setup.wLength);
-			if (dfu_poll_timeout == 0 && dfu_status == DFU_STATUS_OK) {
-				dfu_state = DFU_STATE_dfuDNLOAD_IDLE;
+		case DFU_DNLOAD: {
+			uint16_t len = usb_ep_out_length(0);
+			if (len > 0) {
+				dfu_cb_dnload_packet_completed(usb_setup.wValue, dfu_block_offset, ep0_buf_out, len);
+			}
+			dfu_block_offset += USB_EP0_SIZE;
+
+			if (dfu_block_offset >= usb_setup.wLength) {
+				dfu_poll_timeout = dfu_cb_dnload_block_completed(usb_setup.wValue, usb_setup.wLength);
+				if (dfu_poll_timeout == 0 && dfu_status == DFU_STATUS_OK) {
+					dfu_state = DFU_STATE_dfuDNLOAD_IDLE;
+					usb_ep0_in(0);
+				}
+			} else {
+				usb_ep0_out();
 			}
 
 			break;
+		}
 	}
 }
 

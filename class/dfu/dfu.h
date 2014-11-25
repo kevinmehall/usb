@@ -15,7 +15,8 @@ void dfu_control_out_completion(void);
 
 // Callbacks
 uint16_t dfu_cb_upload_block(uint16_t block, uint8_t** ptr);
-uint8_t* dfu_cb_dnload_block(uint16_t block, uint16_t len);
+void dfu_cb_dnload_block(uint16_t block, uint16_t len);
+void dfu_cb_dnload_packet_completed(uint16_t block, uint16_t offset, uint8_t* buffer, uint16_t len);
 unsigned dfu_cb_dnload_block_completed(uint16_t block, uint16_t length);
 void dfu_cb_manifest(void);
 void dfu_cb_detach(void);
