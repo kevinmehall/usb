@@ -61,11 +61,7 @@ void usb_init(){
 
 	memset(usb_endpoints, 0, usb_num_endpoints*sizeof(UsbDeviceDescriptor));
 	USB->DEVICE.DESCADD.reg = (uint32_t)(&usb_endpoints[0]);
-
-	usb_reset();
-
 	USB->DEVICE.INTENSET.reg = USB_DEVICE_INTENSET_EORST;
-	NVIC_EnableIRQ(USB_IRQn);
 }
 
 #define USB_EPTYPE_DISABLED 0
@@ -184,9 +180,11 @@ inline usb_size usb_ep_out_length(uint8_t ep){
 
 inline void usb_detach(void) {
 	USB->DEVICE.CTRLB.bit.DETACH = 1;
+	NVIC_DisableIRQ(USB_IRQn);
 }
 
 inline void usb_attach(void) {
+	NVIC_EnableIRQ(USB_IRQn);
 	USB->DEVICE.CTRLB.bit.DETACH = 0;
 }
 
