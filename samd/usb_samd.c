@@ -62,6 +62,8 @@ void usb_init(){
 	memset(usb_endpoints, 0, usb_num_endpoints*sizeof(UsbDeviceDescriptor));
 	USB->DEVICE.DESCADD.reg = (uint32_t)(&usb_endpoints[0]);
 	USB->DEVICE.INTENSET.reg = USB_DEVICE_INTENSET_EORST;
+
+	usb_reset();
 }
 
 #define USB_EPTYPE_DISABLED 0
@@ -93,13 +95,13 @@ inline UsbDeviceDescBank* ep_ram(uint8_t epaddr) {
 inline void usb_enable_ep(uint8_t ep, uint8_t type, usb_size bufsize) {
 	if (ep & 0x80) {
 		usb_endpoints[ep & 0x3f].DeviceDescBank[1].PCKSIZE.bit.SIZE = USB_EP_size_to_gc(bufsize);
-		USB->DEVICE.DeviceEndpoint[ep & 0x3f].EPCFG.bit.EPTYPE1 = type;
+		USB->DEVICE.DeviceEndpoint[ep & 0x3f].EPCFG.bit.EPTYPE1 = type + 1;
 		USB->DEVICE.DeviceEndpoint[ep & 0x3f].EPSTATUSCLR.reg = USB_DEVICE_EPSTATUS_BK1RDY
 		                                                      | USB_DEVICE_EPSTATUS_STALLRQ(0x2)
 		                                                      | USB_DEVICE_EPSTATUS_DTGLIN;
 	} else {
 		usb_endpoints[ep & 0x3f].DeviceDescBank[0].PCKSIZE.bit.SIZE = USB_EP_size_to_gc(bufsize);
-		USB->DEVICE.DeviceEndpoint[ep & 0x3f].EPCFG.bit.EPTYPE0 = type;
+		USB->DEVICE.DeviceEndpoint[ep & 0x3f].EPCFG.bit.EPTYPE0 = type + 1;
 		USB->DEVICE.DeviceEndpoint[ep & 0x3f].EPSTATUSSET.reg = USB_DEVICE_EPSTATUS_BK0RDY;
 		USB->DEVICE.DeviceEndpoint[ep & 0x3f].EPSTATUSCLR.reg = USB_DEVICE_EPSTATUS_STALLRQ(0x1)
 		                                                      | USB_DEVICE_EPSTATUS_DTGLOUT;
