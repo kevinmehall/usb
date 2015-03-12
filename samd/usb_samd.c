@@ -231,6 +231,7 @@ void USB_Handler() {
 
 	if (summary & (1<<0)) {
 		uint32_t flags = USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg;
+		USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1 | USB_DEVICE_EPINTFLAG_TRCPT0 | USB_DEVICE_EPINTFLAG_RXSTP;
 		if (flags & USB_DEVICE_EPINTFLAG_RXSTP) {
 			memcpy(&usb_setup, ep0_buf_out, sizeof(usb_setup));
 			usb_handle_setup();
@@ -241,7 +242,6 @@ void USB_Handler() {
 		if (flags & USB_DEVICE_EPINTFLAG_TRCPT1) {
 			usb_handle_control_in_complete();
 		}
-		USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1 | USB_DEVICE_EPINTFLAG_TRCPT0 | USB_DEVICE_EPINTFLAG_RXSTP;
 	}
 
 	for (int i=1; i<usb_num_endpoints; i++) {

@@ -5,6 +5,27 @@ __attribute__((__aligned__(4))) uint8_t ep0_buf_in[USB_EP0_SIZE];
 __attribute__((__aligned__(4))) uint8_t ep0_buf_out[USB_EP0_SIZE];
 volatile uint8_t usb_configuration;
 
+uint16_t usb_ep0_in_size;
+const uint8_t* usb_ep0_in_ptr;
+
+void usb_ep0_in_multi() {
+	uint16_t tsize = usb_ep0_in_size;
+
+	if (tsize > USB_EP0_SIZE) {
+		tsize = USB_EP0_SIZE;
+	}
+
+	memcpy(ep0_buf_in, usb_ep0_in_ptr, tsize);
+	usb_ep_start_in(0x80, ep0_buf_in, tsize, false);
+
+	if (tsize == 0) {
+		usb_ep0_out();
+	}
+
+	usb_ep0_in_size -= tsize;
+	usb_ep0_in_ptr += tsize;
+}
+
 void usb_handle_setup(void){
 	if ((usb_setup.bmRequestType & USB_REQTYPE_TYPE_MASK) == USB_REQTYPE_STANDARD){
 		switch (usb_setup.bRequest){
@@ -34,9 +55,16 @@ void usb_handle_setup(void){
 						size = usb_setup.wLength;
 					}
 
-					memcpy(ep0_buf_in, descriptor, size);
-					usb_ep_start_in(0x80, ep0_buf_in, size, true);
-					return usb_ep0_out();
+					if (descriptor == ep0_buf_in) {
+						usb_ep0_in_size = 0;
+						usb_ep_start_in(0x80, ep0_buf_in, size, true);
+					} else {
+						usb_ep0_in_size = size;
+						usb_ep0_in_ptr = descriptor;
+						usb_ep0_in_multi();
+					}
+
+					return;
 				} else {
 					return usb_ep0_stall();
 				}
@@ -84,6 +112,9 @@ void usb_handle_control_in_complete(void) {
 		switch (usb_setup.bRequest){
 			case USB_REQ_SetAddress:
 				usb_set_address(usb_setup.wValue & 0x7F);
+				return;
+			case USB_REQ_GetDescriptor:
+				usb_ep0_in_multi();
 				return;
 		}
 	} else {
