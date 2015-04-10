@@ -138,6 +138,8 @@ void usb_handle_msft_compatible(const USB_MicrosoftCompatibleDescriptor* msft_co
 void* usb_string_to_descriptor(char* str) {
 	USB_StringDescriptor* desc = (((USB_StringDescriptor*)ep0_buf_in));
 	uint16_t len = strlen(str);
+	const uint16_t maxlen = (USB_EP0_SIZE - 2)/2;
+	if (len > maxlen) len = maxlen;
 	desc->bLength = USB_STRING_LEN(len);
 	desc->bDescriptorType = USB_DTYPE_String;
 	for (int i=0; i<len; i++) {
