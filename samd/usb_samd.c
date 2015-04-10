@@ -253,3 +253,17 @@ void USB_Handler() {
 
 	usb_cb_completion();
 }
+
+void* samd_serial_number_string_descriptor() {
+	char buf[27];
+
+	const unsigned char* id = (unsigned char*) 0x0080A00C;
+	for (int i=0; i<26; i++) {
+		unsigned idx = (i*5)/8;
+		unsigned pos = (i*5)%8;
+		unsigned val = ((id[idx] >> pos) | (id[idx+1] << (8-pos))) & ((1<<5)-1);
+		buf[i] = "0123456789ABCDFGHJKLMNPQRSTVWXYZ"[val];
+	}
+	buf[26] = 0;
+	return usb_string_to_descriptor(buf);
+}
