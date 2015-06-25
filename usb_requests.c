@@ -128,7 +128,11 @@ void usb_handle_msft_compatible(const USB_MicrosoftCompatibleDescriptor* msft_co
 		if (len > msft_compatible->dwLength) {
 			len = msft_compatible->dwLength;
 		}
-		usb_ep_start_in(0x80, (uint8_t*) msft_compatible, len, false);
+		if (len > USB_EP0_SIZE) {
+			len = USB_EP0_SIZE;
+		}
+		memcpy(ep0_buf_in, msft_compatible, len);
+		usb_ep_start_in(0x80, ep0_buf_in, len, false);
 		return usb_ep0_out();
 	} else {
 		return usb_ep0_stall();
