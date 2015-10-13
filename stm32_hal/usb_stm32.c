@@ -1,38 +1,91 @@
 #include "usb.h"
 #include "stm32_hal/usb_stm32.h"
 
+#if defined(STM32F0)
+#include "stm3f0xx.h"
 #include "stm32f0xx_hal.h"
+#elif defined(STM32F4)
+#include "stm32f4xx.h"
+#include "stm32f4xx_hal.h"
+#endif
 PCD_HandleTypeDef hpcd;
 
 void usb_init(){
-	GPIO_InitTypeDef	GPIO_InitStruct;
+	#if defined(STM32F0)
+		GPIO_InitTypeDef	GPIO_InitStruct;
+		__HAL_RCC_GPIOA_CLK_ENABLE();
 
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+		GPIO_InitStruct.Pin = (GPIO_PIN_11 | GPIO_PIN_12);
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+		GPIO_InitStruct.Alternate = GPIO_AF2_USB;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct); 
 
-	GPIO_InitStruct.Pin = (GPIO_PIN_11 | GPIO_PIN_12);
-	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-	GPIO_InitStruct.Alternate = GPIO_AF2_USB;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct); 
+		__HAL_RCC_USB_CLK_ENABLE();
+		
+		hpcd.Instance = USB;
+		hpcd.Init.dev_endpoints = 8;
+		hpcd.Init.ep0_mps = 0x40;
+		hpcd.Init.phy_itface = PCD_PHY_EMBEDDED;
+		hpcd.Init.speed = PCD_SPEED_FULL;
+		hpcd.Init.low_power_enable = 0;
+	#elif defined(STM32F4)
+		__HAL_RCC_GPIOA_CLK_ENABLE();
 
-	__HAL_RCC_USB_CLK_ENABLE();
+		GPIO_InitTypeDef	GPIO_InitStruct;
+		GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
+		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct); 
 
-	hpcd.Instance = USB;
-	hpcd.Init.dev_endpoints = 8;
-	hpcd.Init.ep0_mps = 0x40;
-	hpcd.Init.phy_itface = PCD_PHY_EMBEDDED;
-	hpcd.Init.speed = PCD_SPEED_FULL;
-	hpcd.Init.low_power_enable = 0;
+		GPIO_InitStruct.Pin = GPIO_PIN_9;
+		GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+		GPIO_InitStruct.Pin = GPIO_PIN_10;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+		GPIO_InitStruct.Pull = GPIO_PULLUP;
+		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+		GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct); 
+
+		__HAL_RCC_USB_OTG_FS_CLK_ENABLE();
+		
+		hpcd.Instance = USB_OTG_FS;
+		hpcd.Init.dev_endpoints = 4; 
+		hpcd.Init.use_dedicated_ep1 = 0;
+		hpcd.Init.ep0_mps = 0x40;  
+		hpcd.Init.dma_enable = 0;
+		hpcd.Init.low_power_enable = 0;
+		hpcd.Init.phy_itface = PCD_PHY_EMBEDDED; 
+		hpcd.Init.Sof_enable = 0;
+		hpcd.Init.speed = PCD_SPEED_FULL;
+		hpcd.Init.vbus_sensing_enable = 0;
+	#endif
+
+
 	HAL_PCD_Init(&hpcd);
 	
-	HAL_PCDEx_PMAConfig(&hpcd, 0x00, PCD_SNG_BUF, 0x18);
-	HAL_PCDEx_PMAConfig(&hpcd, 0x80, PCD_SNG_BUF, 0x58); 
+	#if defined(STM32F0)
+		HAL_PCDEx_PMAConfig(&hpcd, 0x00, PCD_SNG_BUF, 0x18);
+		HAL_PCDEx_PMAConfig(&hpcd, 0x80, PCD_SNG_BUF, 0x58); 
+		
+		HAL_NVIC_SetPriority(USB_IRQn, 3, 0);
+		HAL_NVIC_EnableIRQ(USB_IRQn);
+	#elif defined(STM32F4)
+		HAL_PCDEx_SetRxFiFo(&hpcd, 0x80);
+		HAL_PCDEx_SetTxFiFo(&hpcd, 0, 0x40);
+		HAL_PCDEx_SetTxFiFo(&hpcd, 1, 0x80);
+	
+		HAL_NVIC_SetPriority(OTG_FS_IRQn, 3, 0);
+		HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
+	#endif
 	
 	usb_reset();
-	
-	HAL_NVIC_SetPriority(USB_IRQn, 3, 0);
-	HAL_NVIC_EnableIRQ(USB_IRQn);
 }
 
 void usb_reset(){
@@ -41,6 +94,10 @@ void usb_reset(){
 }
 
 void usb_set_address(uint8_t addr) {
+	
+}
+
+void usb_set_address_setup(uint8_t addr) {
 	HAL_PCD_SetAddress(&hpcd, addr);
 }
 
@@ -122,6 +179,8 @@ void usb_irq() {
 
 void HAL_PCD_SetupStageCallback(PCD_HandleTypeDef *hpcd) {
 	memcpy(&usb_setup, (uint8_t *)hpcd->Setup, sizeof(usb_setup));
+	HAL_PCD_EP_Flush(hpcd, 0x00);
+	HAL_PCD_EP_Flush(hpcd, 0x80);
 	usb_handle_setup();
 }
 
@@ -144,10 +203,16 @@ void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd) {
 	usb_cb_reset();
 }
 
+#if defined(STM32F0)
+#define UID_ADDR 0x1FFFF7AC
+#elif defined(STM32F4)
+#define UID_ADDR 0x1FFF7A10
+#endif
+
 void* stm32_serial_number_string_descriptor() {
 	char buf[21];
 
-	const unsigned char* id = (unsigned char*) 0x1FFFF7AC;
+	const unsigned char* id = (unsigned char*) UID_ADDR;
 	for (int i=0; i<20; i++) {
 		unsigned idx = (i*5)/8;
 		unsigned pos = (i*5)%8;

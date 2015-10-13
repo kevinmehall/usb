@@ -50,8 +50,13 @@ void usb_detach(void);
 /// Called internally on USB reset
 void usb_reset(void);
 
-/// Called internally to configure the USB controller with the new address
+/// Called internally to configure the USB controller with the new address after
+/// the status stage
 void usb_set_address(uint8_t addr);
+
+/// Called internally to configure the USB controller with the new address 
+/// immediately after setup is received
+void usb_set_address_setup(uint8_t addr);
 
 /// Configure and enable an endpoint
 void usb_enable_ep(usb_ep ep, uint8_t type, usb_size pkt_size);

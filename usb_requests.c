@@ -41,6 +41,7 @@ void usb_handle_setup(void){
 				return usb_ep0_out();
 
 			case USB_REQ_SetAddress:
+			  usb_set_address_setup(usb_setup.wValue & 0x7F);
 				usb_ep0_in(0);
 				return usb_ep0_out();
 
