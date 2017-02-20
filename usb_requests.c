@@ -8,7 +8,7 @@ volatile uint8_t usb_configuration;
 uint16_t usb_ep0_in_size;
 const uint8_t* usb_ep0_in_ptr;
 
-void usb_ep0_in_multi() {
+void usb_ep0_in_multi(void) {
 	uint16_t tsize = usb_ep0_in_size;
 
 	if (tsize > USB_EP0_SIZE) {
