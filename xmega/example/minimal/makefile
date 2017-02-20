@@ -138,7 +138,7 @@ CFLAGS += -funsigned-bitfields
 CFLAGS += -fpack-struct
 CFLAGS += -fshort-enums
 CFLAGS += -fno-strict-aliasing
-CFLAGS += -Wall
+CFLAGS += -Wall -Werror
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wa,-adhlns=$(<:%.c=$(OBJDIR)/%.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
